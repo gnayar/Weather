@@ -24,6 +24,19 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		
 				
+
+		//JSON Testing
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+
+		StrictMode.setThreadPolicy(policy); 
+		
+		JSONParser parser = new JSONParser();
+		Log.v("http", "parser attempting");
+		
+		String test = parser.read();
+		ArrayList<String> testArray = parser.parse(test);
+
+
 		/*OKAY GAUTAM READ
 
 		Currently, the data is being held in an arraylist and I am only parsing 		some data.
