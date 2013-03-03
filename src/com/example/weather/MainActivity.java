@@ -23,6 +23,27 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
+				
+		/*OKAY GAUTAM READ
+
+		Currently, the data is being held in an arraylist and I am only parsing 		some data.
+		Just let me know if you need more. Its currently stored based on indices
+			-> I know this is retarded
+		I will use a hash or key value pair soon
+		
+		index 0 = observation_time <- not sure what this means
+		index 1 = cloud cover
+		index 2 = current pressure
+		index 3 = temperature in fahrenheit
+		index 4 = temperature in Celsius
+		
+		*/
+
+
+
+
+
+
 		mDetector = new GestureDetectorCompat(this, new MyGestureListener());
 	}
 
