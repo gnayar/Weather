@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -36,6 +37,9 @@ public class MainActivity extends Activity {
 		String test = parser.read();
 		ArrayList<String> testArray = parser.parse(test);
 
+		for(int i = 0; i< testArray.size(); i++) {
+			Log.v("http", testArray.get(i));
+		}
 
 		/*OKAY GAUTAM READ
 

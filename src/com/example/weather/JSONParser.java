@@ -93,6 +93,7 @@ public class JSONParser extends AsyncTask {
 			data.add(temp_F);
 			data.add(temp_C);
 			
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.v("http", "failed to parse");
