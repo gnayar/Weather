@@ -8,20 +8,15 @@ import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MotionEventCompat;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.ArrayAdapter;
-import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 public class MainActivity extends Activity {
 	private static final String DEBUG_TAG = "Motion"; 
@@ -34,6 +29,15 @@ public class MainActivity extends Activity {
 	RelativeLayout surface;
 	ListView hours;
 	Context context;
+	int screenHeight, screenWidth;
+	
+	
+	
+	public enum State {
+		Q1, Q2, Q3, Q4, IDLE;
+	}
+	State state;
+	State previousState;
 	
 	boolean listViewUp = false;
 	
@@ -45,8 +49,14 @@ public class MainActivity extends Activity {
 		stacker = (RelativeLayout)findViewById(R.id.main);
 		context = this;
 		
+		state = State.IDLE;
+		previousState = State.IDLE;
 
+		DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+		screenWidth = metrics.widthPixels;
+		screenHeight = metrics.heightPixels;
 		
+		Log.v("state", "Screen width: " + screenWidth + " Screen height: " + screenHeight);
 
 		//JSON Testing
 		//currently using wunderground's api!!!!
@@ -124,25 +134,73 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		this.mDetector.onTouchEvent(event);
-		
+
 		int action = MotionEventCompat.getActionMasked(event);
         
 	    switch(action) {
 	        case (MotionEvent.ACTION_DOWN) :
-	            Log.d(DEBUG_TAG,"Action was DOWN");
-	            return true;
-	        case (MotionEvent.ACTION_MOVE) :
 	        	int x = (int) event.getX();
 	        	int y = (int) event.getY();
-	            Log.d(DEBUG_TAG,"Action was MOVE: " + x +", "+y);
+	            //Log.v("state","Action was DOWN: x -> " + x + " y -> " + y);
+
+		        if(x < screenWidth/2 && y < screenHeight/2) {     
+		        	previousState = State.Q2;
+	            
+	            } else if (x > screenWidth/2 && y < screenHeight/2) {
+	            	previousState = State.Q1;
+	            } else if (x < screenWidth/2 && y > screenHeight/2) {
+	            	previousState = State.Q3;
+	            } else if (x > screenWidth/2 && y > screenHeight/2) {
+	            	previousState = State.Q4;
+	            }
+		       // Log.v("state", "previous state: " + previousState.toString());
+		        return true;
+	        
+	        case (MotionEvent.ACTION_MOVE) :
+
+	            //Log.d(DEBUG_TAG,"Action was MOVE");
+	                        
+	            
 	            return true;
 	        case (MotionEvent.ACTION_UP) :
-	            Log.d(DEBUG_TAG,"Action was UP");
+	            //Log.d(DEBUG_TAG,"Action was UP");
+	        
+        		int x1 = (int) event.getX();
+        		int y1 = (int) event.getY();
+		        if(x1 < screenWidth/2 && y1 < screenHeight/2) {
+	            	state = State.Q2;            
+	            } else if (x1 > screenWidth/2 && y1 < screenHeight/2) {
+	            	state = State.Q1;
+	            } else if (x1 < screenWidth/2 && y1 > screenHeight/2) {
+	            	state = State.Q3;
+	            } else if (x1 > screenWidth/2 && y1 > screenHeight/2) {
+	            	state = State.Q4;
+	            }
+
+		        
+	            //now we have two states to handle...one is the state we are coming from and the other is the state we currently
+	            //moved to...
+	            //now do the logic 
+	            
+	        
+		        
+	            Log.v("state", "Previous state: " + previousState.toString() + " Current state: " + state.toString());
+	            if(previousState == State.Q2 && state == State.Q3) {
+	            	Log.v("state", "Left pull down");
+	        		//((TextView)findViewById(R.id.text)).setText("Left Down");
+	            } else if (previousState == State.Q3 && state == State.Q3) {
+	            	Log.v("state", "Left pull up");
+	            } else if (previousState == State.Q1 && state == State.Q4) {
+	            	Log.v("state", "Right pull down");
+	            } else if (previousState == State.Q4 && state == State.Q1) {
+	            	Log.v("state", "Right pull up");
+	            }
+	        
 		        if(listViewUp == true){
 		        	surface = (RelativeLayout)findViewById(R.id.surface);
 	        		stacker.bringChildToFront(surface);
 	        		Log.d(DEBUG_TAG,"UP with remove"); 
-	        		listViewUp = false;
+	        		//listViewUp = false;
 	        	} 
             	return true;
 	        case (MotionEvent.ACTION_CANCEL) :
@@ -157,6 +215,7 @@ public class MainActivity extends Activity {
 	    }      
 		
 	}
+
 	
 	
 	
@@ -201,7 +260,6 @@ public class MainActivity extends Activity {
 //	        	else if((event1.getRawX()<middle)&&(sum<-400)){
 //	        		swiped = true;
 //	        		main.setBackgroundColor(Color.LTGRAY);
-//	        		((TextView)findViewById(R.id.text)).setText("Left Down");
 //	        		
 //	        		hours = new ListView(context);
 //	        		
