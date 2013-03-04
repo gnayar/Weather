@@ -1,6 +1,9 @@
 package com.example.weather;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
+
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -28,15 +31,26 @@ public class MainActivity extends Activity {
 
 		//JSON Testing
 		//currently using wunderground's api!!!!
-		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 
-		StrictMode.setThreadPolicy(policy); 
 		
 		JSONParser parser = new JSONParser();
 		Log.v("http", "parser attempting");
+		ArrayList<String> testArray;
 		
-		String test = parser.read();
-		ArrayList<String> testArray = parser.parse(test);
+		JSONObject obj;
+		try {
+			obj = parser.execute("safsfs").get();
+			testArray = parser.parse(obj);
+
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			testArray = new ArrayList<String>();
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			testArray = new ArrayList<String>();
+			e.printStackTrace();
+		}
 
 		for(int i = 0; i< testArray.size(); i++) {
 			Log.v("http", testArray.get(i));

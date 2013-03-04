@@ -18,8 +18,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 
-//NOT REALLY USING ASYNCTASK
-public class JSONParser extends AsyncTask {
+public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 	
 	private final String API_KEY = "6421665c1fee1f47";
 	//my private generated key to access the weather api
@@ -30,7 +29,7 @@ public class JSONParser extends AsyncTask {
 	}
 	
 	
-	public String read() {
+	public JSONObject doInBackground(String... params) {
 		StringBuilder builder = new StringBuilder();
 		HttpClient client = new DefaultHttpClient();
 		
@@ -48,7 +47,8 @@ public class JSONParser extends AsyncTask {
 			}
 			data = builder.toString();
 			//Log.v("http", data);
-			return data;
+			JSONObject obj = new JSONObject(data);
+			return obj;
 			
 			
 		} catch (Exception e) {
@@ -58,22 +58,15 @@ public class JSONParser extends AsyncTask {
 		}
 		
 	}
-
-
-	@Override
-	protected Object doInBackground(Object... params) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 	
 	
-	public ArrayList<String> parse(String jsonString) {
+	public ArrayList<String> parse(JSONObject obj) {
 		ArrayList<String> data = new ArrayList<String>();
 		
 		//first need to create a jsonobject out of the string
 		try {
 			//Log.v("http", jsonString);
-			JSONObject obj = new JSONObject(jsonString);
+			//JSONObject obj = new JSONObject(jsonString);
 			Log.v("http", "created json object");
 			JSONObject dataJSON = obj.getJSONObject("current_observation");
 			Log.v("http", "created data object");
