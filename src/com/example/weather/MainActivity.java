@@ -1,6 +1,7 @@
 package com.example.weather;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.json.JSONObject;
@@ -8,7 +9,6 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -70,7 +70,31 @@ public class MainActivity extends Activity {
 		
 		*/
 
+		
+		
+		//TESTING DATABASE
+		CommentsDataSource datasource = new CommentsDataSource(this);
+		datasource.open();
+		
+		Log.v("db", "Inserting...");
+		
+		Comment comment = null;
+		comment = datasource.createComment("TEST");
+		comment = datasource.createComment("TEST1");
+		comment = datasource.createComment("TEST2");
 
+
+		
+		
+		Log.v("db", "Reading...");
+		List<Comment> comments = datasource.getAllComments();
+		
+		Log.v("db", "Printing...");
+		Log.v("db", comments.size() + "");
+		for(int i = 0; i < comments.size(); i++) {
+			String log = "Name: " + comments.get(i).toString();
+			Log.v("db", log);
+		}
 
 
 
