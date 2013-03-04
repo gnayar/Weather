@@ -189,7 +189,7 @@ public class MainActivity extends Activity {
 	            if(previousState == State.Q2 && state == State.Q3) {
 	            	Log.v("state", "Left pull down");
 	        		((TextView)findViewById(R.id.text)).setText("Left Down");
-	            } else if (previousState == State.Q3 && state == State.Q3) {
+	            } else if (previousState == State.Q3 && state == State.Q2) {
 	        		((TextView)findViewById(R.id.text)).setText("Left Up");
 	            	Log.v("state", "Left pull up");
 	            } else if (previousState == State.Q1 && state == State.Q4) {
