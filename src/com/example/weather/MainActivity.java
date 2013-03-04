@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MotionEventCompat;
@@ -15,6 +16,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -135,6 +137,7 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		this.mDetector.onTouchEvent(event);
+		RelativeLayout main = (RelativeLayout)findViewById(R.id.surface);
 
 		int action = MotionEventCompat.getActionMasked(event);
         
@@ -188,6 +191,11 @@ public class MainActivity extends Activity {
 	            Log.v("state", "Previous state: " + previousState.toString() + " Current state: " + state.toString());
 	            if(previousState == State.Q2 && state == State.Q3) {
 	            	Log.v("state", "Left pull down");
+	            	if(constructListView()) {
+	            		Log.v("state", "List view returned true");
+	            	} else 
+	            		Log.v("state", "List view returned false");
+	            	
 	        		((TextView)findViewById(R.id.text)).setText("Left Down");
 	            } else if (previousState == State.Q3 && state == State.Q2) {
 	        		((TextView)findViewById(R.id.text)).setText("Left Up");
@@ -201,6 +209,9 @@ public class MainActivity extends Activity {
 	            	Log.v("state", "Right pull up");
 	            }
 	        
+	            
+	            
+	            
 		        if(listViewUp == true){
 		        	surface = (RelativeLayout)findViewById(R.id.surface);
 	        		stacker.bringChildToFront(surface);
@@ -221,7 +232,20 @@ public class MainActivity extends Activity {
 		
 	}
 
-	
+	public boolean constructListView() {
+		//main.setBackgroundColor(Color.LTGRAY);
+		
+		hours = new ListView(context);
+		
+		String[] stringArray = new String[] { "1", "2","3","4","5","6","7","8","9","10","11","12" };
+		ArrayAdapter<String> modeAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, android.R.id.text1, stringArray);
+		hours.setAdapter(modeAdapter);
+		stacker.addView(hours);
+		
+		listViewUp = true;
+		stacker.bringChildToFront(hours);
+		return true;
+	}
 	
 	
 	 class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
