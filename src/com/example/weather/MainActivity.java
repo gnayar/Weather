@@ -17,6 +17,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 public class MainActivity extends Activity {
 	private static final String DEBUG_TAG = "Motion"; 
@@ -187,12 +188,16 @@ public class MainActivity extends Activity {
 	            Log.v("state", "Previous state: " + previousState.toString() + " Current state: " + state.toString());
 	            if(previousState == State.Q2 && state == State.Q3) {
 	            	Log.v("state", "Left pull down");
-	        		//((TextView)findViewById(R.id.text)).setText("Left Down");
+	        		((TextView)findViewById(R.id.text)).setText("Left Down");
 	            } else if (previousState == State.Q3 && state == State.Q3) {
+	        		((TextView)findViewById(R.id.text)).setText("Left Up");
 	            	Log.v("state", "Left pull up");
 	            } else if (previousState == State.Q1 && state == State.Q4) {
+	        		((TextView)findViewById(R.id.text)).setText("Right Down");
 	            	Log.v("state", "Right pull down");
 	            } else if (previousState == State.Q4 && state == State.Q1) {
+	        		((TextView)findViewById(R.id.text)).setText("Right Up");
+
 	            	Log.v("state", "Right pull up");
 	            }
 	        
