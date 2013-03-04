@@ -27,6 +27,7 @@ public class MainActivity extends Activity {
 				
 
 		//JSON Testing
+		//currently using wunderground's api!!!!
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 
 		StrictMode.setThreadPolicy(policy); 
@@ -48,11 +49,10 @@ public class MainActivity extends Activity {
 			-> I know this is retarded
 		I will use a hash or key value pair soon
 		
-		index 0 = observation_time <- not sure what this means
+		index 0 = observation_time
 		index 1 = cloud cover
 		index 2 = current pressure
-		index 3 = temperature in fahrenheit
-		index 4 = temperature in Celsius
+		index 3 = temperature in string format
 		
 		*/
 

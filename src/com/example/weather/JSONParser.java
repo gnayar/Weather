@@ -21,7 +21,7 @@ import android.widget.Toast;
 //NOT REALLY USING ASYNCTASK
 public class JSONParser extends AsyncTask {
 	
-	private final String API_KEY = "6c983158db171325130303";
+	private final String API_KEY = "6421665c1fee1f47";
 	//my private generated key to access the weather api
 	//will be a part of the url to send/receive json requests
 	
@@ -34,7 +34,7 @@ public class JSONParser extends AsyncTask {
 		StringBuilder builder = new StringBuilder();
 		HttpClient client = new DefaultHttpClient();
 		
-		HttpGet http = new HttpGet("http://free.worldweatheronline.com/feed/weather.ashx?q=32601&format=json&num_of_days=2&key=6c983158db171325130303");
+		HttpGet http = new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/conditions/q/CA/San_Francisco.json");
 		//currently just arbitrarily gainesville
 		//will probably need to use a stringbuilder to generate the true url based on request
 		try {
@@ -75,23 +75,17 @@ public class JSONParser extends AsyncTask {
 			//Log.v("http", jsonString);
 			JSONObject obj = new JSONObject(jsonString);
 			Log.v("http", "created json object");
-			JSONObject dataJSON = obj.getJSONObject("data");
+			JSONObject dataJSON = obj.getJSONObject("current_observation");
 			Log.v("http", "created data object");
-			JSONArray array = dataJSON.getJSONArray("current_condition");
+			//Log.v("http", dataJSON.getString("display_location"));
 			Log.v("http", "array made");
-			JSONObject current = array.getJSONObject(0);
-			
-			//just getting a LITTLE BIT  of data for now but its all here 
-			String observation_time = current.getString("observation_time");
-			String cloudcover = current.getString("cloudcover");
-			String pressure = current.getString("pressure");
-			String temp_F = current.getString("temp_F");
-			String temp_C = current.getString("temp_C");
-			data.add(observation_time);
-			data.add(cloudcover);
-			data.add(pressure);
-			data.add(temp_F);
-			data.add(temp_C);
+
+			data.add(dataJSON.getString("observation_time"));
+			data.add(dataJSON.getString("weather"));
+			data.add(dataJSON.getString("relative_humidity"));
+			data.add(dataJSON.getString("temperature_string"));
+
+
 			
 			
 		} catch (Exception e) {
