@@ -9,30 +9,28 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MotionEventCompat;
+import android.text.format.Time;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
 	private static final String DEBUG_TAG = "Motion"; 
-	int sum = 0;
-	int color = 0;
 	
-	ViewGroup stacker;
-	RelativeLayout touchlayer;
-	RelativeLayout weather;
-	TextView statusbox;
-	ListView hours;
+	private GestureDetectorCompat mDetector;
 	Context context;
 	int screenHeight, screenWidth;
+	
+	//Variables to set time
+	boolean inHours = false;
+	int timeChosen;
+	String amPm = "am";
+	int amPmCount = 0;
+	int timeChangeCount = 0;
 	
 	
 	
@@ -42,22 +40,27 @@ public class MainActivity extends Activity {
 	State state;
 	State previousState;
 	
-	boolean listViewUp = false;
 	
 	// Called when the activity is first created.
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		stacker = (RelativeLayout)findViewById(R.id.main);
-		touchlayer = new RelativeLayout(this);
-		stacker.addView(touchlayer);
-		stacker.bringChildToFront(touchlayer);
-		touchlayer.setEnabled(true);
-		
 		context = this;
+		mDetector = new GestureDetectorCompat(this, new MyGestureListener());
 		
-		constructBaseLevel();
+		//Finding current time
+		Time now = new Time();
+		now.setToNow();
+		TextView mainText = (TextView) findViewById(R.id.mainText);
+		if(now.hour>12){
+			now.hour-=12;
+			amPm = "pm";
+		}
+		mainText.setText("Long press to choose a time\n\nCurrent time is: "+now.hour+":"+now.minute+amPm);
+		timeChosen = now.hour;
+		
 		
 		state = State.IDLE;
 		previousState = State.IDLE;
@@ -135,10 +138,9 @@ public class MainActivity extends Activity {
 		}
 		
 	}
-	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-
+		this.mDetector.onTouchEvent(event);
 		int action = MotionEventCompat.getActionMasked(event);
 
 		switch (action) {
@@ -162,7 +164,7 @@ public class MainActivity extends Activity {
 
 		case (MotionEvent.ACTION_MOVE):
 
-			Log.d(DEBUG_TAG,"Action was MOVE");
+			//Log.d(DEBUG_TAG,"Action was MOVE");
 			int x1 = (int) event.getX();
 			int y1 = (int) event.getY();
 			if (x1 < screenWidth / 2 && y1 < screenHeight / 2) {
@@ -184,33 +186,69 @@ public class MainActivity extends Activity {
 					+ " Current state: " + state.toString());
 			if (previousState == State.Q2 && state == State.Q3) {
 				Log.v("state", "Left pull down");
-				if (constructListView()) {
-					Log.v("state", "List view returned true");
-				} else
-					Log.v("state", "List view returned false");
-
+				
+				if((timeChangeCount == 0)&&(!inHours)){
+					changeHour(-1);
+				}
+				
+				
 				//((TextView) findViewById(R.id.text)).setText("Left Down");
 			} else if (previousState == State.Q3 && state == State.Q2) {
 				//((TextView) findViewById(R.id.text)).setText("Left Up");
 				Log.v("state", "Left pull up");
+				
+				if((timeChangeCount == 0)&&(!inHours)){
+					changeHour(1);
+				}
 			} else if (previousState == State.Q1 && state == State.Q4) {
 				//((TextView) findViewById(R.id.text)).setText("Right Down");
 				Log.v("state", "Right pull down");
+				if((!inHours)&&(amPmCount == 0)){
+					if(amPm.equals("am")){
+						amPm = "pm";
+					}
+					else if(amPm.equals("pm")){
+						amPm = "am";
+					}
+					
+					TextView mainText = (TextView) findViewById(R.id.mainText);
+					mainText.setText("You chose "+Integer.toString(timeChosen)+":00"+amPm);
+					amPmCount = 1;
+				}
+			
+						
 			} else if (previousState == State.Q4 && state == State.Q1) {
 				//((TextView) findViewById(R.id.text)).setText("Right Up");
 
 				Log.v("state", "Right pull up");
 			}
+			
+			if(inHours==true){
+				int angle = (int) Math.toDegrees(Math.atan2(x1 - screenWidth / 2, y1 - screenHeight/2));
+			    if(angle < 0){
+			        angle += 360;
+			    }
+			    
+			    TextView t1 = (TextView) findViewById(R.id.chosendate);
+			    timeChosen = calculateClockAngle(angle);
+			    t1.setText(Integer.toString(timeChosen)+":00"); 		
+				   
+			}
 
 			return true;
 		case (MotionEvent.ACTION_UP):
 			// Log.d(DEBUG_TAG,"Action was UP");
-			if (listViewUp == true) {
-				stacker.bringChildToFront(weather);
-				stacker.bringChildToFront(touchlayer);
-				touchlayer.setEnabled(true);
-				Log.d(DEBUG_TAG, "UP with remove");
-				listViewUp = false;
+			if(inHours){
+				inHours = false;
+				setContentView(R.layout.activity_main);
+				
+				TextView mainText = (TextView) findViewById(R.id.mainText);
+				mainText.setText("You chose "+Integer.toString(timeChosen)+":00"+amPm);
+				
+			}
+			else if(!inHours){
+				amPmCount = 0;
+				timeChangeCount = 0;
 			}
 			return true;
 		case (MotionEvent.ACTION_CANCEL):
@@ -221,59 +259,68 @@ public class MainActivity extends Activity {
 					+ "of current screen element");
 			return true;
 		default:
-			return super.onTouchEvent(event);
-		}
-
-	}
-
-	public boolean constructListView() {
-		//main.setBackgroundColor(Color.LTGRAY);
-		if(listViewUp==false){
-			hours = new ListView(context);
-			
-			String[] stringArray = new String[] { "1", "2","3","4","5","6","7","8","9","10","11","12" };
-			ArrayAdapter<String> modeAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, android.R.id.text1, stringArray);
-			hours.setAdapter(modeAdapter);
-			stacker.addView(hours);
-			
-			hours.setEnabled(false);
-			hours.setBackgroundColor(0xFF0099cc);
-			listViewUp = true;
-			stacker.bringChildToFront(hours);
-			stacker.bringChildToFront(touchlayer);
-			touchlayer.setEnabled(true);
 			return true;
 		}
-		return false;
+
+		
 	}
-	
-	public boolean constructBaseLevel(){
+	private void changeHour(int change) {
+		timeChosen+=change;
+		if(timeChosen>12){
+			timeChosen-=12;
+			if(amPm.equals("am")){
+				amPm = "pm";
+			}
+			else if(amPm.equals("pm")){
+				amPm = "am";
+			}
+		}
+		else if(timeChosen<1){
+			timeChosen+=12;
+			if(amPm.equals("am")){
+				amPm = "pm";
+			}
+			else if(amPm.equals("pm")){
+				amPm = "am";
+			}
+		}
 		
-		statusbox = new TextView(context);
-		statusbox.setLayoutParams(new LayoutParams(
-	            LayoutParams.FILL_PARENT,
-	            LayoutParams.WRAP_CONTENT));
-		statusbox.setText("Swipper");
+		timeChangeCount = 1;
 		
-		weather = new RelativeLayout(context);
-		weather.setLayoutParams(new LayoutParams(
-	            LayoutParams.FILL_PARENT,
-	            LayoutParams.FILL_PARENT));
-		weather.setBackgroundColor(0xFFff8800);
-		
-		weather.addView(statusbox);
-		weather.bringChildToFront(statusbox);
-		
-		stacker.addView(weather);
-		stacker.bringChildToFront(weather);
-		stacker.bringChildToFront(touchlayer);
-		touchlayer.setEnabled(true);
-		
-		
-		return true;
+		TextView mainText = (TextView) findViewById(R.id.mainText);
+		mainText.setText("You chose "+Integer.toString(timeChosen)+":00"+amPm);
 	}
-	
-	
+	private int calculateClockAngle(int angle) {
+		int upperLimit = 15;
+		int hour = 6;
+		while(upperLimit<365){
+			if(angle<upperLimit){
+				Log.d(DEBUG_TAG, "Hour: "+ hour +" Angle: " + angle); 
+				return hour;
+				
+			}
+			else if(angle>=upperLimit){
+				
+				upperLimit+=30;
+				hour--;
+				if(hour == 0){
+					hour = 12;
+				}
+			}
+		}
+		return 6;
+	}
+		
+	class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
+        private static final String DEBUG_TAG = "Motion"; 
+        @Override
+        public void onLongPress(MotionEvent event) {
+            Log.d(DEBUG_TAG, "onLongPress: " + event.toString()); 
+            setContentView(R.layout.hours);
+            inHours = true;
+        }
+        
+    }
 	 
 }
 
