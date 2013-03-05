@@ -6,8 +6,13 @@ import java.util.concurrent.ExecutionException;
 
 import org.json.JSONObject;
 
+import com.slidingmenu.lib.SlidingMenu;
+import com.slidingmenu.lib.SlidingMenu.CanvasTransformer;
+import com.slidingmenu.lib.app.SlidingActivity;
+
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MotionEventCompat;
@@ -16,22 +21,28 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class MainActivity extends Activity {
+
+
+public class MainActivity extends SlidingActivity {
 	private static final String DEBUG_TAG = "Motion"; 
 	
 	private GestureDetectorCompat mDetector;
 	Context context;
 	int screenHeight, screenWidth;
+	private CanvasTransformer mTransformer;
 	
 	//Variables to set time
 	boolean inHours = false;
-	int timeChosen;
+	Time timeChosen;
 	String amPm = "am";
 	int amPmCount = 0;
 	int timeChangeCount = 0;
-	
 	
 	
 	public enum State {
@@ -40,15 +51,36 @@ public class MainActivity extends Activity {
 	State state;
 	State previousState;
 	
-	
 	// Called when the activity is first created.
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		setBehindContentView(R.layout.menu);
 		context = this;
 		mDetector = new GestureDetectorCompat(this, new MyGestureListener());
+		SlidingMenu menu = getSlidingMenu();
+		menu.setBehindOffsetRes(R.dimen.slidingmenu_offset);
+		menu.setFadeEnabled(true);
+		menu.setFadeDegree(0.35f);
+		menu.setMode(SlidingMenu.LEFT_RIGHT);
+		menu.setSecondaryMenu(R.layout.menu2);
+		menu.setAboveOffset(20);
+        menu.setShadowWidthRes(R.dimen.shadow_width);
+        menu.setShadowDrawable(R.drawable.shadow);
+        menu.setSecondaryShadowDrawable(R.drawable.shadow2);
+		menu.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
+		
+
+		
+		
+		
+		
+		ListView days = (ListView)findViewById(R.id.days);
+		String[] stringArray = new String[] {"Tomorrow", "Day After" };
+		ArrayAdapter<String> modeAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, android.R.id.text1, stringArray);
+		days.setAdapter(modeAdapter);
+		
 		
 		//Finding current time
 		Time now = new Time();
@@ -58,8 +90,14 @@ public class MainActivity extends Activity {
 			now.hour-=12;
 			amPm = "pm";
 		}
-		mainText.setText("Long press to choose a time\n\nCurrent time is: "+now.hour+":"+now.minute+amPm);
-		timeChosen = now.hour;
+
+		timeChosen = now;
+		if(timeChosen.minute<10){
+    		mainText.setText("Long press to choose a time\n\nCurrent time is: "+timeChosen.hour+":0"+timeChosen.minute+amPm); 
+    	}
+    	else{
+    		mainText.setText("Long press to choose a time\n\nCurrent time is: "+timeChosen.hour+":"+timeChosen.minute+amPm); 
+    	}
 		
 		
 		state = State.IDLE;
@@ -163,7 +201,7 @@ public class MainActivity extends Activity {
 			return true;
 
 		case (MotionEvent.ACTION_MOVE):
-
+			
 			//Log.d(DEBUG_TAG,"Action was MOVE");
 			int x1 = (int) event.getX();
 			int y1 = (int) event.getY();
@@ -212,7 +250,12 @@ public class MainActivity extends Activity {
 					}
 					
 					TextView mainText = (TextView) findViewById(R.id.mainText);
-					mainText.setText("You chose "+Integer.toString(timeChosen)+":00"+amPm);
+					if(timeChosen.minute<10){
+			    		mainText.setText("You chose "+timeChosen.hour+":0"+timeChosen.minute+amPm); 
+			    	}
+			    	else{
+			    		mainText.setText("You chose "+timeChosen.hour+":"+timeChosen.minute+amPm); 
+			    	}
 					amPmCount = 1;
 				}
 			
@@ -224,14 +267,35 @@ public class MainActivity extends Activity {
 			}
 			
 			if(inHours==true){
+				TextView t1 = (TextView) findViewById(R.id.chosendate);
+				
 				int angle = (int) Math.toDegrees(Math.atan2(x1 - screenWidth / 2, y1 - screenHeight/2));
 			    if(angle < 0){
 			        angle += 360;
 			    }
+			    double dX= Math.pow((x1 - screenWidth / 2),2);
+			    double dY= Math.pow((y1 - screenHeight/2),2);
+
+			    double d = Math.sqrt(dX + dY);
+			    Log.d(DEBUG_TAG, Double.toString(d));
 			    
-			    TextView t1 = (TextView) findViewById(R.id.chosendate);
-			    timeChosen = calculateClockAngle(angle);
-			    t1.setText(Integer.toString(timeChosen)+":00"); 		
+			    if(d>90){
+			    	timeChosen.hour = calculateClockAngle(angle);
+			    	timeChosen.minute = 0;
+			    	t1.setText(timeChosen.hour+":00"+amPm);
+			    }
+			    else{
+			    	Time now = new Time();
+					now.setToNow();
+			    	timeChosen = now;
+			    	if(timeChosen.minute<10){
+			    		t1.setText(timeChosen.hour+":0"+timeChosen.minute+amPm); 
+			    	}
+			    	else{
+			    		t1.setText(timeChosen.hour+":"+timeChosen.minute+amPm); 
+			    	}
+			    }
+			    		
 				   
 			}
 
@@ -243,8 +307,12 @@ public class MainActivity extends Activity {
 				setContentView(R.layout.activity_main);
 				
 				TextView mainText = (TextView) findViewById(R.id.mainText);
-				mainText.setText("You chose "+Integer.toString(timeChosen)+":00"+amPm);
-				
+				if(timeChosen.minute<10){
+		    		mainText.setText("You chose "+timeChosen.hour+":0"+timeChosen.minute+amPm); 
+		    	}
+		    	else{
+		    		mainText.setText("You chose "+timeChosen.hour+":"+timeChosen.minute+amPm); 
+		    	}
 			}
 			else if(!inHours){
 				amPmCount = 0;
@@ -265,9 +333,9 @@ public class MainActivity extends Activity {
 		
 	}
 	private void changeHour(int change) {
-		timeChosen+=change;
-		if(timeChosen>12){
-			timeChosen-=12;
+		timeChosen.hour+=change;
+		if(timeChosen.hour>12){
+			timeChosen.hour-=12;
 			if(amPm.equals("am")){
 				amPm = "pm";
 			}
@@ -275,8 +343,8 @@ public class MainActivity extends Activity {
 				amPm = "am";
 			}
 		}
-		else if(timeChosen<1){
-			timeChosen+=12;
+		else if(timeChosen.hour<1){
+			timeChosen.hour+=12;
 			if(amPm.equals("am")){
 				amPm = "pm";
 			}
@@ -288,14 +356,19 @@ public class MainActivity extends Activity {
 		timeChangeCount = 1;
 		
 		TextView mainText = (TextView) findViewById(R.id.mainText);
-		mainText.setText("You chose "+Integer.toString(timeChosen)+":00"+amPm);
+		if(timeChosen.minute<10){
+    		mainText.setText("You chose "+timeChosen.hour+":0"+timeChosen.minute+amPm); 
+    	}
+    	else{
+    		mainText.setText("You chose "+timeChosen.hour+":"+timeChosen.minute+amPm); 
+    	}
 	}
 	private int calculateClockAngle(int angle) {
 		int upperLimit = 15;
 		int hour = 6;
 		while(upperLimit<365){
 			if(angle<upperLimit){
-				Log.d(DEBUG_TAG, "Hour: "+ hour +" Angle: " + angle); 
+				
 				return hour;
 				
 			}
@@ -317,10 +390,20 @@ public class MainActivity extends Activity {
         public void onLongPress(MotionEvent event) {
             Log.d(DEBUG_TAG, "onLongPress: " + event.toString()); 
             setContentView(R.layout.hours);
+            int x1 = (int) event.getX();
+            if(x1<screenWidth/2){
+            	amPm = "am";
+            }
+            else if(x1>screenWidth/2){
+            	amPm = "pm";
+            }
             inHours = true;
         }
         
     }
-	 
+	
+	
 }
+
+
 
