@@ -111,6 +111,7 @@ public class MainActivity extends SlidingActivity implements LocationListener{
     	}
 		
 		
+		
 		state = State.IDLE;
 		previousState = State.IDLE;
 
@@ -234,6 +235,19 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 		for(int i = 0; i < comments.size(); i++) {
 			String log = "Name: " + comments.get(i).toString();
 			Log.v("db", log);
+		}
+	
+		String[] currentHour = current.get(0);
+		int currentTime = Integer.parseInt(currentHour[6]);
+		int currentTemp = Integer.parseInt(currentHour[0]);
+		String currentCondition = currentHour[0];
+		TextView conditions = (TextView)findViewById(R.id.conditions);
+		conditions.setText(currentCondition);
+		ImageView weatherIcon = (ImageView)findViewById(R.id.weatherIcon);
+		try{
+			weatherIcon.setImageResource(conditionPicMatcher.get(currentCondition));
+		}catch(Exception E){
+			
 		}
 		
 	}
@@ -466,18 +480,12 @@ public class MainActivity extends SlidingActivity implements LocationListener{
         	//Toast.makeText(context, "double tap",Toast.LENGTH_SHORT).show();
         	if((!inHours)&&(amPmCount == 0)){
         		//Change imageview on doubleTap
-        		ImageView main = (ImageView)findViewById(R.id.weatherIcon);
-        		TextView conditions = (TextView)findViewById(R.id.conditions);
         		
 				if(amPm.equals("am")){
 					amPm = "pm";
-					main.setImageResource(R.drawable.clim_cloudmoon);
-					conditions.setText("Currently 15 Degrees");
 				}
 				else if(amPm.equals("pm")){
 					amPm = "am";
-					main.setImageResource(R.drawable.clim_cloud);
-					conditions.setText("Currently 75 Degrees");
 				}
 				
 				TextView mainText = (TextView) findViewById(R.id.mainText);
