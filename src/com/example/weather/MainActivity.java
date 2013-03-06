@@ -90,10 +90,10 @@ public class MainActivity extends SlidingActivity {
 
 		timeChosen = now;
 		if(timeChosen.minute<10){
-    		mainText.setText("Long press to choose a time\n\nCurrent time is: "+timeChosen.hour+":0"+timeChosen.minute+amPm); 
+    		mainText.setText("Current time is: "+timeChosen.hour+":0"+timeChosen.minute+amPm); 
     	}
     	else{
-    		mainText.setText("Long press to choose a time\n\nCurrent time is: "+timeChosen.hour+":"+timeChosen.minute+amPm); 
+    		mainText.setText("Current time is: "+timeChosen.hour+":"+timeChosen.minute+amPm); 
     	}
 		
 		
@@ -398,13 +398,17 @@ public class MainActivity extends SlidingActivity {
         	if((!inHours)&&(amPmCount == 0)){
         		//Change imageview on doubleTap
         		ImageView main = (ImageView)findViewById(R.id.weatherIcon);
-        		main.setImageResource(R.drawable.circle);
+        		TextView conditions = (TextView)findViewById(R.id.conditions);
         		
 				if(amPm.equals("am")){
 					amPm = "pm";
+					main.setImageResource(R.drawable.clim_cloudmoon);
+					conditions.setText("Currently 15 Degrees");
 				}
 				else if(amPm.equals("pm")){
 					amPm = "am";
+					main.setImageResource(R.drawable.clim_cloud);
+					conditions.setText("Currently 75 Degrees");
 				}
 				
 				TextView mainText = (TextView) findViewById(R.id.mainText);

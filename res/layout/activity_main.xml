@@ -10,16 +10,32 @@
         android:id="@+id/weatherIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingBottom = "50dp"
+        android:scaleType="centerCrop"
         android:layout_centerInParent="true"
-        android:src="@drawable/cloud_plain" />
+        android:src="@drawable/clim_cloud" />
 
     <TextView
         android:id="@+id/mainText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/weatherIcon"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
+        android:paddingBottom="75dp"
         android:text="Long Press to set time"
+        android:textColor="#FFFFFF"
+        android:textSize="20dp" />
+
+    <TextView
+        android:id="@+id/conditions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_above="@+id/mainText"
+        android:paddingBottom="50dp"
+        android:text="Currently 75 Degrees"
         android:textColor="#FFFFFF"
         android:textSize="20dp" />
 
