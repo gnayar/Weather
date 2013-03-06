@@ -3,15 +3,24 @@
     android:id="@+id/main"
     android:layout_width="fill_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    android:background="#FF33B5E5" >
+    android:background="#FF33B5E5"
+    tools:context=".MainActivity" >
+
+    <ImageView
+        android:id="@+id/weatherIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:src="@drawable/cloud_plain" />
+
     <TextView
-        android:id = "@+id/mainText"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:layout_centerInParent="true"
-	    android:text="Long Press to set time"
-	    android:textSize="20dp"
-	    android:textColor="#FFFFFF"></TextView>
-   
+        android:id="@+id/mainText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/weatherIcon"
+        android:layout_centerHorizontal="true"
+        android:text="Long Press to set time"
+        android:textColor="#FFFFFF"
+        android:textSize="20dp" />
+
 </RelativeLayout>

@@ -6,13 +6,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.json.JSONObject;
 
-import com.slidingmenu.lib.SlidingMenu;
-import com.slidingmenu.lib.SlidingMenu.CanvasTransformer;
-import com.slidingmenu.lib.app.SlidingActivity;
-
-import android.app.Activity;
 import android.content.Context;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MotionEventCompat;
@@ -21,12 +15,15 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.slidingmenu.lib.SlidingMenu;
+import com.slidingmenu.lib.SlidingMenu.CanvasTransformer;
+import com.slidingmenu.lib.app.SlidingActivity;
 
 
 public class MainActivity extends SlidingActivity {
@@ -183,6 +180,7 @@ public class MainActivity extends SlidingActivity {
 
 		switch (action) {
 		case (MotionEvent.ACTION_DOWN):
+			
 			int x = (int) event.getX();
 			int y = (int) event.getY();
 			Log.d(DEBUG_TAG,"Action was DOWN: x -> " + x + " y -> " + y);
@@ -241,22 +239,8 @@ public class MainActivity extends SlidingActivity {
 			} else if (previousState == State.Q1 && state == State.Q4) {
 				//((TextView) findViewById(R.id.text)).setText("Right Down");
 				Log.v("state", "Right pull down");
-				if((!inHours)&&(amPmCount == 0)){
-					if(amPm.equals("am")){
-						amPm = "pm";
-					}
-					else if(amPm.equals("pm")){
-						amPm = "am";
-					}
-					
-					TextView mainText = (TextView) findViewById(R.id.mainText);
-					if(timeChosen.minute<10){
-			    		mainText.setText("You chose "+timeChosen.hour+":0"+timeChosen.minute+amPm); 
-			    	}
-			    	else{
-			    		mainText.setText("You chose "+timeChosen.hour+":"+timeChosen.minute+amPm); 
-			    	}
-					amPmCount = 1;
+				if((timeChangeCount == 0)&&(!inHours)){
+					changeHour(-6);
 				}
 			
 						
@@ -264,6 +248,10 @@ public class MainActivity extends SlidingActivity {
 				//((TextView) findViewById(R.id.text)).setText("Right Up");
 
 				Log.v("state", "Right pull up");
+				
+				if((timeChangeCount == 0)&&(!inHours)){
+					changeHour(6);
+				}
 			}
 			
 			if(inHours==true){
@@ -288,6 +276,9 @@ public class MainActivity extends SlidingActivity {
 			    	Time now = new Time();
 					now.setToNow();
 			    	timeChosen = now;
+			    	if(timeChosen.hour>12){
+			    		timeChosen.hour-=12;
+			    	}
 			    	if(timeChosen.minute<10){
 			    		t1.setText(timeChosen.hour+":0"+timeChosen.minute+amPm); 
 			    	}
@@ -316,7 +307,9 @@ public class MainActivity extends SlidingActivity {
 			}
 			else if(!inHours){
 				amPmCount = 0;
-				timeChangeCount = 0;
+				timeChangeCount = 0;       
+	            
+	            
 			}
 			return true;
 		case (MotionEvent.ACTION_CANCEL):
@@ -398,6 +391,33 @@ public class MainActivity extends SlidingActivity {
             	amPm = "pm";
             }
             inHours = true;
+        }
+        @Override
+        public boolean onDoubleTap(MotionEvent event){
+        	//Toast.makeText(context, "double tap",Toast.LENGTH_SHORT).show();
+        	if((!inHours)&&(amPmCount == 0)){
+        		//Change imageview on doubleTap
+        		ImageView main = (ImageView)findViewById(R.id.weatherIcon);
+        		main.setImageResource(R.drawable.circle);
+        		
+				if(amPm.equals("am")){
+					amPm = "pm";
+				}
+				else if(amPm.equals("pm")){
+					amPm = "am";
+				}
+				
+				TextView mainText = (TextView) findViewById(R.id.mainText);
+				if(timeChosen.minute<10){
+		    		mainText.setText("You chose "+timeChosen.hour+":0"+timeChosen.minute+amPm); 
+		    	}
+		    	else{
+		    		mainText.setText("You chose "+timeChosen.hour+":"+timeChosen.minute+amPm); 
+		    	}
+				amPmCount = 1;
+				
+			}
+        	return true;
         }
         
     }
