@@ -119,8 +119,8 @@ public class MainActivity extends SlidingActivity {
 			obj = parser.execute("safsfs").get();
 			ArrayList<String[]> current = parser.parse(obj);
 			
-			for(int i = 0; i< 6; i++) {
-				Log.v("http", current.get(23)[i]);
+			for(int i = 0; i< 7; i++) {
+				Log.v("http", current.get(0)[i]);
 			}
 
 		} catch (InterruptedException e) {

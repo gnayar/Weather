@@ -19,7 +19,7 @@ import android.widget.Toast;
 
 
 // arraylist of string[] arrays 
-// string[] -> tempf, tempc, chance of rain, wind speed, wind direction, condition
+// string[] -> tempf, tempc, chance of rain, wind speed, wind direction, condition, current hour
 // just parseInt when you want the int values
 
 //arraylist of those strings will be indexed appropriately to the hour
@@ -42,7 +42,7 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 		HttpClient client = new DefaultHttpClient();
 		
 		//HttpGet http = new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/conditions/q/CA/San_Francisco.json");
-		HttpGet http = new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/hourly/q/CA/San_Francisco.json");
+		HttpGet http = new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/hourly/q/FL/Gainesville.json");
 		
 		//will probably need to use a stringbuilder to generate the true url based on request
 		try {
@@ -70,7 +70,7 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 	
 	
 	public ArrayList<String[]> parse(JSONObject obj) {
-		String[] data = new String[6]; //will always contain six values
+		String[] data = new String[7]; //will always contain 7 values
 		ArrayList<String[]> conditions = new ArrayList<String[]>(24);
 
 		//first need to create a jsonobject out of the string
@@ -93,13 +93,15 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 				JSONObject temporary_temperature = time.getJSONObject("temp");
 				JSONObject temp_wind = time.getJSONObject("wspd");
 				JSONObject temp_winddir = time.getJSONObject("wdir");
-				
+				JSONObject fcttime = time.getJSONObject("FCTTIME");
+						
 				data[0] = String.valueOf(temporary_temperature.getInt("english"));
 				data[1] = String.valueOf(temporary_temperature.getInt("metric"));
 				data[2] = String.valueOf(time.getInt("pop"));
 				data[3] = String.valueOf(temp_wind.getInt("english")); //LET ME KNOW IF YOU WANT METRIC -> CHANGE KEY TO metric
 				data[4] = String.valueOf(temp_winddir.getInt("degrees")); //in degrees so easier to bound and choose icon
 				data[5] = time.getString("wx");
+				data[6] = String.valueOf(fcttime.getInt("hour"));
 				
 				conditions.add(data);
 			
