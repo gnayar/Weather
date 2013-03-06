@@ -42,6 +42,7 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 	int screenHeight, screenWidth;
 	private CanvasTransformer mTransformer;
 	
+	ArrayList<String[]> current;
 	Map<String, Integer> conditionPicMatcher;
 	
 	//for gps
@@ -121,7 +122,6 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 
 		//JSON Testing
 		//currently using wunderground's api!!!!
-		String[] testArray;
 		
 		JSONParser parser = new JSONParser();
 		Log.v("http", "parser attempting");
@@ -130,7 +130,7 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 		JSONObject obj;
 		try {
 			obj = parser.execute("safsfs").get();
-			ArrayList<String[]> current = parser.parse(obj);
+			current = parser.parse(obj);
 			
 			for(int i = 0; i< 7; i++) {
 				Log.v("http", current.get(0)[i]);
@@ -138,11 +138,11 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
-			testArray = new String[6];
+			current = new ArrayList<String[]>();
 			e.printStackTrace();
 		} catch (ExecutionException e) {
 			// TODO Auto-generated catch block
-			testArray = new String[6];
+			current = new ArrayList<String[]>();
 			e.printStackTrace();
 		}
 
