@@ -100,7 +100,7 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 				data[2] = String.valueOf(time.getInt("pop"));
 				data[3] = String.valueOf(temp_wind.getInt("english")); //LET ME KNOW IF YOU WANT METRIC -> CHANGE KEY TO metric
 				data[4] = String.valueOf(temp_winddir.getInt("degrees")); //in degrees so easier to bound and choose icon
-				data[5] = time.getString("wx");
+				data[5] = time.getString("condition");
 				data[6] = String.valueOf(fcttime.getInt("hour"));
 				
 				conditions.add(data);
