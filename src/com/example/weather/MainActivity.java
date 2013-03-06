@@ -7,7 +7,13 @@ import java.util.concurrent.ExecutionException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.content.Intent;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.text.format.Time;
@@ -26,13 +32,16 @@ import com.slidingmenu.lib.SlidingMenu.CanvasTransformer;
 import com.slidingmenu.lib.app.SlidingActivity;
 
 
-public class MainActivity extends SlidingActivity {
+public class MainActivity extends SlidingActivity implements LocationListener{
 	private static final String DEBUG_TAG = "Motion"; 
 	
 	private GestureDetectorCompat mDetector;
 	Context context;
 	int screenHeight, screenWidth;
 	private CanvasTransformer mTransformer;
+	
+	//for gps
+	int lng, lat;
 	
 	//Variables to set time
 	boolean inHours = false;
@@ -69,8 +78,6 @@ public class MainActivity extends SlidingActivity {
 		menu.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
 		
 
-		
-		
 		
 		
 		ListView days = (ListView)findViewById(R.id.days);
@@ -161,6 +168,58 @@ public class MainActivity extends SlidingActivity {
 
 		
 		
+		//GPS TESTING
+		LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
+		boolean enabled = service
+		  .isProviderEnabled(LocationManager.GPS_PROVIDER);
+		String locationProvider = LocationManager.NETWORK_PROVIDER;
+
+
+		// Check if enabled and if not send user to the GSP settings
+		// Better solution would be to display a dialog and suggesting to 
+		// go to the settings
+		if (!enabled) {
+		  Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+		  startActivity(intent);
+		  Log.v("gps", "GPS is disabled");
+		} 
+		
+		if(enabled) {
+			  Log.v("gps", "GPS is enabled");
+
+		    // Get the location manager
+		    LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		    // Define the criteria how to select the location provider -> use
+		    // default
+		    Criteria criteria = new Criteria();
+		    String provider = locationManager.getBestProvider(criteria, false);
+		    Log.v("gps", "provider: " + provider);
+		    
+		    if(locationManager.isProviderEnabled(provider)) {
+		    	Log.v("gps", provider + " is enabled");
+		    } else {
+		    	Log.v("gps", provider + " is NOT enabled");
+		    }
+		    
+		    
+		    Location location = locationManager.getLastKnownLocation(provider);
+		    //Log.v("gps", "location: " + location.toString());
+		    // Initialize the location fields
+		    if (location != null) {
+		    	Log.v("gps", "Found a location");
+		        Log.v("gps", "Provider " + provider + " has been selected.");
+		        onLocationChanged(location);
+		      
+		    } else {
+			      lat = 0;
+			      lng = 0;
+			      Log.v("gps", "Latitude: " + lat + " Longitude: " + lng);
+
+			      
+		    }
+		}
+	
+		
 		Log.v("db", "Reading...");
 		List<Comment> comments = datasource.getAllComments();
 		
@@ -172,6 +231,11 @@ public class MainActivity extends SlidingActivity {
 		}
 		
 	}
+	
+	
+
+	
+	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		this.mDetector.onTouchEvent(event);
@@ -424,6 +488,38 @@ public class MainActivity extends SlidingActivity {
         }
         
     }
+
+	//GPS
+	@Override
+	  public void onLocationChanged(Location location) {
+	    lat = (int) (location.getLatitude());
+	    lng = (int) (location.getLongitude());
+	    Log.v("gps", "Latitude: " + lat + " Longitude: " + lng);
+
+
+	  }
+	
+	
+	@Override
+	public void onProviderDisabled(String provider) {
+		Toast.makeText(this, "Disabled provider " + provider,
+		        Toast.LENGTH_SHORT).show();
+		
+	}
+
+
+	@Override
+	public void onProviderEnabled(String provider) {
+	    Toast.makeText(this, "Enabled new provider " + provider,
+	            Toast.LENGTH_SHORT).show();		
+	}
+
+
+	@Override
+	public void onStatusChanged(String provider, int status, Bundle extras) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 	
 }
