@@ -240,7 +240,7 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 		String[] currentHour = current.get(0);
 		int currentTime = Integer.parseInt(currentHour[6]);
 		int currentTemp = Integer.parseInt(currentHour[0]);
-		String currentCondition = currentHour[0];
+		String currentCondition = currentHour[5];
 		TextView conditions = (TextView)findViewById(R.id.conditions);
 		conditions.setText(currentCondition);
 		ImageView weatherIcon = (ImageView)findViewById(R.id.weatherIcon);
