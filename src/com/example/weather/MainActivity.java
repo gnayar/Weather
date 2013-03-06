@@ -1,7 +1,9 @@
 package com.example.weather;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.json.JSONObject;
@@ -39,6 +41,8 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 	Context context;
 	int screenHeight, screenWidth;
 	private CanvasTransformer mTransformer;
+	
+	Map<String, Integer> conditionPicMatcher;
 	
 	//for gps
 	int lng, lat;
@@ -78,6 +82,8 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 		menu.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
 		
 
+		
+		setUpMap();
 		
 		
 		ListView days = (ListView)findViewById(R.id.days);
@@ -520,6 +526,159 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 		// TODO Auto-generated method stub
 		
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	//Maps stuff
+	public void setUpMap(){
+		conditionPicMatcher = new HashMap<String,Integer>();
+		
+		conditionPicMatcher.put("Light Drizzle", R.drawable.clim_clouddrizzlealt);
+		conditionPicMatcher.put("Drizzle", R.drawable.clim_clouddrizzle);
+		conditionPicMatcher.put("Heavy Drizzle", R.drawable.clim_clouddrizzle);
+		conditionPicMatcher.put("Light Rain", R.drawable.clim_cloudrainalt);
+		conditionPicMatcher.put("Rain", R.drawable.clim_cloudrain);
+		conditionPicMatcher.put("Heavy Rain", R.drawable.clim_cloudrain);
+		conditionPicMatcher.put("Light Rain Showers", R.drawable.clim_cloudrainalt);
+		conditionPicMatcher.put("Rain Showers", R.drawable.clim_cloudrain);
+		conditionPicMatcher.put("Heavy Rain Showers", R.drawable.clim_cloudrain);
+		
+		conditionPicMatcher.put("Light Snow", R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Snow", R.drawable.clim_cloudsnowalt);
+		conditionPicMatcher.put("Heavy Snow", R.drawable.clim_cloudsnowalt);
+		conditionPicMatcher.put("Light Snow Showers", R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Snow Showers", R.drawable.clim_cloudsnowalt);
+		conditionPicMatcher.put("Heavy Snow Showers", R.drawable.clim_cloudsnowalt);
+		conditionPicMatcher.put("Light Snow Blowing Snow Mist", R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Snow Blowing Snow Mist", R.drawable.clim_cloudsnowalt);
+		conditionPicMatcher.put("Heavy Snow Blowing Snow Mist", R.drawable.clim_cloudsnowalt);
+		conditionPicMatcher.put("Light Snow Grains", R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Snow Grains", R.drawable.clim_cloudsnowalt);
+		conditionPicMatcher.put("Heavy Snow Grains", R.drawable.clim_cloudsnowalt);
+		conditionPicMatcher.put("Light Ice Crystals", R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Ice Crystals", R.drawable.clim_cloudsnowalt);
+		conditionPicMatcher.put("Heavy Ice Crystals", R.drawable.clim_cloudsnowalt);
+		conditionPicMatcher.put("Light Low Drifting Snow", R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Low Drifting Snow", R.drawable.clim_cloudsnowalt);
+		conditionPicMatcher.put("Heavy Drifting Snow", R.drawable.clim_cloudsnowalt);
+		conditionPicMatcher.put("Light Blowing Snow", R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Blowing Snow", R.drawable.clim_cloudsnowalt);
+		conditionPicMatcher.put("Heavy Blowing Snow", R.drawable.clim_cloudsnowalt);
+		
+		conditionPicMatcher.put("Light Ice Pellets", R.drawable.clim_cloudhail);
+		conditionPicMatcher.put("Ice Pellets", R.drawable.clim_cloudhailalt);
+		conditionPicMatcher.put("Heavy Ice Pellets", R.drawable.clim_cloudhailalt);
+		conditionPicMatcher.put("Light Hail", R.drawable.clim_cloudhail);
+		conditionPicMatcher.put("Hail", R.drawable.clim_cloudhailalt);
+		conditionPicMatcher.put("Heavy Hail", R.drawable.clim_cloudhailalt);
+		
+		conditionPicMatcher.put("Light Hail Showers", R.drawable.clim_cloudhail);
+		conditionPicMatcher.put("Hail Showers", R.drawable.clim_cloudhailalt);
+		conditionPicMatcher.put("Heavy Hail Showers", R.drawable.clim_cloudhailalt);
+		conditionPicMatcher.put("Light Small Hail Showers", R.drawable.clim_cloudhail);
+		conditionPicMatcher.put("Small Hail Showers", R.drawable.clim_cloudhailalt);
+		conditionPicMatcher.put("Heavy Small Hail Showers", R.drawable.clim_cloudhailalt);
+		conditionPicMatcher.put("Light Ice Pellet Showers", R.drawable.clim_cloudhail);
+		conditionPicMatcher.put("Ice Pellet Showers", R.drawable.clim_cloudhailalt);
+		conditionPicMatcher.put("Heavy Ice Pellet Showers", R.drawable.clim_cloudhailalt);
+		
+		conditionPicMatcher.put("Light Mist", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Mist", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Mist", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Fog", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Fog", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Fog", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Fog Patches", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Fog Patches", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Fog Patches", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Smoke", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Smoke", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Smoke", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Volcanic Ash", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Volcanic Ash", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Volcanic Ash", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Widespread Dust", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Widespread Dust", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Widespread Dust", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Sand", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Sand", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Sand", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Haze", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Haze", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Haze", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Dust Whirls", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Dust Whirls", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Dust Whirls", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Sandstorm", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Sandstorm", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Sandstorm", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Low Drifting Widespread Dust", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Low Drifting Widespread Dust", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Low Drifting Widespread Dust", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Low Drifting Sand", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Low Drifting Sand", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Low Drifting Sand", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Blowing Widespread Dust", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Blowing Widespread Dust", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Blowing Widespread Dust", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Blowing Sand", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Blowing Sand", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Blowing Sand", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Rain Mist", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Rain Mist", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Rain Mist", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Light Freezing Fog", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Freezing Fog", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Heavy Freezing Fog", R.drawable.clim_cloudfog);
+		conditionPicMatcher.put("Patches of Fog", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Shallow Fog", R.drawable.clim_cloudfogalt);
+		conditionPicMatcher.put("Partial Fog", R.drawable.clim_cloudfogalt);
+		
+
+		conditionPicMatcher.put("Light Thunderstorm", R.drawable.clim_cloudlightning);
+		conditionPicMatcher.put("Thunderstorms", R.drawable.clim_cloudlightning);
+		conditionPicMatcher.put("Heavy Thunderstorms", R.drawable.clim_cloudlightning);		
+		conditionPicMatcher.put("Light Thunderstorms and Rain", R.drawable.clim_cloudlightning);
+		conditionPicMatcher.put("Thunderstorms and Rain", R.drawable.clim_cloudlightning);
+		conditionPicMatcher.put("Heavy Thunderstorms and Rain", R.drawable.clim_cloudlightning);		
+		conditionPicMatcher.put("Light Thunderstorms and Snow", R.drawable.clim_cloudlightning);
+		conditionPicMatcher.put("Thunderstorms and Snow", R.drawable.clim_cloudlightning);
+		conditionPicMatcher.put("Heavy Thunderstorms and Snow", R.drawable.clim_cloudlightning);		
+		conditionPicMatcher.put("Light Thunderstorms and Ice Pellets", R.drawable.clim_cloudlightning);
+		conditionPicMatcher.put("Thunderstorms and Ice Pellets", R.drawable.clim_cloudlightning);
+		conditionPicMatcher.put("Heavy Thunderstorms and Ice Pellets", R.drawable.clim_cloudlightning);		
+		conditionPicMatcher.put("Light Thunderstorms with Hail", R.drawable.clim_cloudlightning);
+		conditionPicMatcher.put("Thunderstorms with Hail", R.drawable.clim_cloudlightning);
+		conditionPicMatcher.put("Heavy Thunderstorms with Hail", R.drawable.clim_cloudlightning);		
+		conditionPicMatcher.put("Light Thunderstorms with Small Hail", R.drawable.clim_cloudlightning);
+		conditionPicMatcher.put("Thunderstorms with Small Hail", R.drawable.clim_cloudlightning);
+		conditionPicMatcher.put("Heavy Thunderstorms with Small Hail", R.drawable.clim_cloudlightning);
+		
+		conditionPicMatcher.put("Light Freezing Drizzle", R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Freezing Drizzle", R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Heavy Freezing Drizzle", R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Light Freezing Rain", R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Freezing Rain", R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Heavy Freezing Rain", R.drawable.clim_cloudsnow);
+		
+
+		conditionPicMatcher.put("Overcast", R.drawable.clim_cloud);
+		conditionPicMatcher.put("Partly Cloudy", R.drawable.clim_cloud);
+		conditionPicMatcher.put("Mostly Cloudy", R.drawable.clim_cloud);
+		conditionPicMatcher.put("Scattered Clouds", R.drawable.clim_cloud);
+		conditionPicMatcher.put("Squals", R.drawable.clim_cloudwind);
+		conditionPicMatcher.put("Funnel Cloud", R.drawable.clim_cloud);
+		conditionPicMatcher.put("Unknown Precipitation", R.drawable.clim_cloud);
+		conditionPicMatcher.put("Unknown", R.drawable.clim_cloud);
+		conditionPicMatcher.put("Clear", R.drawable.clim_sun);
+		
+	}
+	
 	
 	
 }
