@@ -108,30 +108,32 @@ public class MainActivity extends SlidingActivity {
 
 		//JSON Testing
 		//currently using wunderground's api!!!!
-
+		String[] testArray;
 		
 		JSONParser parser = new JSONParser();
 		Log.v("http", "parser attempting");
-		ArrayList<String> testArray;
+		//ArrayList<String> testArray;
 		
 		JSONObject obj;
 		try {
 			obj = parser.execute("safsfs").get();
-			testArray = parser.parse(obj);
+			ArrayList<String[]> current = parser.parse(obj);
+			
+			for(int i = 0; i< 6; i++) {
+				Log.v("http", current.get(23)[i]);
+			}
 
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
-			testArray = new ArrayList<String>();
+			testArray = new String[6];
 			e.printStackTrace();
 		} catch (ExecutionException e) {
 			// TODO Auto-generated catch block
-			testArray = new ArrayList<String>();
+			testArray = new String[6];
 			e.printStackTrace();
 		}
 
-		for(int i = 0; i< testArray.size(); i++) {
-			Log.v("http", testArray.get(i));
-		}
+
 
 		/*OKAY GAUTAM READ
 
@@ -140,10 +142,7 @@ public class MainActivity extends SlidingActivity {
 			-> I know this is retarded
 		I will use a hash or key value pair soon
 		
-		index 0 = observation_time
-		index 1 = cloud cover
-		index 2 = current pressure
-		index 3 = temperature in string format
+
 		
 		*/
 
