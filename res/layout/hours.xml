@@ -3,7 +3,7 @@
     android:name = "@+id/menu"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF0099cc" >
+    android:background="@drawable/selector" >
     <ImageView
         android:id="@+id/imageView1"
         android:layout_width="wrap_content"

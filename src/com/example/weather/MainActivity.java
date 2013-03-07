@@ -26,10 +26,17 @@ import android.text.format.Time;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,6 +66,7 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 	int amPmCount = 0;
 	int timeChangeCount = 0;
 	
+	int signalColorChange = 0;
 	
 	public enum State {
 		Q1, Q2, Q3, Q4, IDLE;
@@ -306,7 +314,7 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 				Log.v("state", "Left pull down");
 				
 				if((timeChangeCount == 0)&&(!inHours)){
-					 Log.d(DEBUG_TAG, "Time " + Integer.toString(comparer)+" Limiter " + Integer.toString(limiter) );
+					 
 					if(comparer != limiter){
 						changeHour(-1);
 						displayTime(0);
@@ -319,9 +327,9 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 			} else if (previousState == State.Q3 && state == State.Q2) {
 				//((TextView) findViewById(R.id.text)).setText("Left Up");
 				Log.v("state", "Left pull up");
-				
+				Log.d(DEBUG_TAG, "Time " + Integer.toString(comparer)+" Limiter " + Integer.toString(limiter) );
 				if((timeChangeCount == 0)&&(!inHours)){
-					if(comparer +1 != limiter){
+					if(comparer +1 != limiter) {
 						changeHour(1);
 						displayTime(0);
 						weatherAtTime(timeChosen.hour, amPm);
@@ -386,7 +394,13 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 			// Log.d(DEBUG_TAG,"Action was UP");
 			if(inHours){
 				inHours = false;
+				
 				setContentView(R.layout.activity_main);
+				LinearLayout view = (LinearLayout) findViewById(R.id.main);
+				
+	            view.startAnimation(AnimationUtils.loadAnimation(context, android.R.anim.slide_in_left));
+				
+				
 				
 				displayTime(0);
 				weatherAtTime(timeChosen.hour, amPm);
@@ -551,7 +565,14 @@ public class MainActivity extends SlidingActivity implements LocationListener{
         @Override
         public void onLongPress(MotionEvent event) {
             Log.d(DEBUG_TAG, "onLongPress: " + event.toString()); 
+           
+            LinearLayout view = (LinearLayout) findViewById(R.id.main);
+            View hours = (View) findViewById(R.layout.hours);
+            view.startAnimation(AnimationUtils.loadAnimation(context, android.R.anim.fade_out));
             setContentView(R.layout.hours);
+            
+            
+            
             int x1 = (int) event.getX();
             if(x1<screenWidth/2){
             	amPm = "am";
@@ -625,11 +646,12 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 				hour = 0;
 			}
 		}
-		
+		LinearLayout main = (LinearLayout) findViewById(R.id.main);
 		for(int i = 0; i<current.size();i++){
 			
 			String[] temp = current.get(i);
 			int time = Integer.parseInt(temp[6]);
+			
 			//Log.d(DEBUG_TAG, "Looping: " +time); 
 			if(time == hour){				
 				int temperature = Integer.parseInt(temp[0]);
@@ -637,6 +659,7 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 				int precip = Integer.parseInt(temp[2]);
 				String condition = temp[5];
 				//Log.d(DEBUG_TAG, "Found Info: "+time+"   Temp: " + temperature + " condition: " + condition); 
+				
 				TextView temperatureView = (TextView)findViewById(R.id.temperature);
 				temperatureView.setText(Integer.toString(temperature));
 				TextView windSpeed = (TextView)findViewById(R.id.windspeed);
@@ -650,6 +673,17 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 					weatherIcon.setImageResource(conditionPicMatcher.get(condition));
 				}catch(Exception E){
 					
+				}
+				if(temperature<50){
+					
+					main.setBackgroundColor(0xFF33B5E5);
+					signalColorChange = 1;
+					//hours.setBackgroundColor(0xFF33B5E5);
+				}
+				else if(temperature>50){
+					main.setBackgroundColor(0xFFFF9900);
+					signalColorChange = 2;
+					//hours.setBackgroundColor(0xFFFF9900);
 				}
 				return;
 			}
