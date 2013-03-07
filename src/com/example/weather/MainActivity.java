@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.GradientDrawable;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -230,7 +231,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			Log.v("db", log);
 		}
 
-		weatherAtTime(timeChosen.hour, amPm);
+		weatherAtTime(timeChosen.hour, amPm,0);
 
 	}
 
@@ -320,7 +321,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 							changeHour(-1);
 							displayTime(0);
-							weatherAtTime(timeChosen.hour, amPm);
+							weatherAtTime(timeChosen.hour, amPm, 0);
 						}
 					}
 				}
@@ -335,11 +336,11 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					clockMod.setTextColor(0x50CCCCFF);
 					if (distance > 200) {
 						clockMod.setTextColor(0xFFFFFFFF);
-						if (timeChangeCount == 0)  {
+						if (timeChangeCount == 0) {
 
 							changeHour(1);
 							displayTime(0);
-							weatherAtTime(timeChosen.hour, amPm);
+							weatherAtTime(timeChosen.hour, amPm, 0);
 						}
 					}
 				}
@@ -352,7 +353,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					clockMod.setTextColor(0x50CCCCFF);
 					if (distance > 200) {
 						clockMod.setTextColor(0xFFFFFFFF);
-						if (timeChangeCount == 0){
+						if (timeChangeCount == 0) {
 							Log.d(DEBUG_TAG,
 									"Time " + Integer.toString(comparer)
 											+ " Limiter "
@@ -360,7 +361,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 							changeHour(-1);
 							displayTime(0);
-							weatherAtTime(timeChosen.hour, amPm);
+							weatherAtTime(timeChosen.hour, amPm, 0);
 						}
 					}
 				}
@@ -379,7 +380,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 							changeHour(1);
 							displayTime(0);
-							weatherAtTime(timeChosen.hour, amPm);
+							weatherAtTime(timeChosen.hour, amPm, 0);
 						}
 					}
 				}
@@ -400,6 +401,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 				if (d > 90) {
 					timeChosen.hour = calculateClockAngle(angle);
+					weatherAtTime(timeChosen.hour,amPm,1);
 					timeChosen.minute = 0;
 					displayTime(1);
 				} else {
@@ -424,12 +426,14 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 				setContentView(R.layout.activity_main);
 				LinearLayout view = (LinearLayout) findViewById(R.id.main);
-
-				view.startAnimation(AnimationUtils.loadAnimation(context,
-						android.R.anim.slide_in_left));
+				
+				Animation a1 = AnimationUtils.loadAnimation(context,
+						android.R.anim.fade_in);
+				a1.setDuration(200);
+				view.startAnimation(a1);
 
 				displayTime(0);
-				weatherAtTime(timeChosen.hour, amPm);
+				weatherAtTime(timeChosen.hour, amPm, 0);
 			} else if (!inHours) {
 				amPmCount = 0;
 				timeChangeCount = 0;
@@ -585,8 +589,10 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 			LinearLayout view = (LinearLayout) findViewById(R.id.main);
 			View hours = (View) findViewById(R.layout.hours);
-			view.startAnimation(AnimationUtils.loadAnimation(context,
-					android.R.anim.fade_out));
+			Animation a1 = AnimationUtils.loadAnimation(context,
+					android.R.anim.fade_out);
+			a1.setDuration(200);
+			view.startAnimation(a1);
 			setContentView(R.layout.hours);
 
 			int x1 = (int) event.getX();
@@ -612,7 +618,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 				displayTime(0);
 				amPmCount = 1;
-				weatherAtTime(timeChosen.hour, amPm);
+				weatherAtTime(timeChosen.hour, amPm, 0);
 
 			}
 			return true;
@@ -648,7 +654,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	}
 
-	public void weatherAtTime(int hour, String amPmChosen) {
+	public void weatherAtTime(int hour, String amPmChosen, int type) {
 		if (amPmChosen.equals("pm")) {
 			hour += 12;
 			if (hour == 24) {
@@ -656,6 +662,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			}
 		}
 		LinearLayout main = (LinearLayout) findViewById(R.id.main);
+		RelativeLayout menu = (RelativeLayout) findViewById(R.id.menu);
 		for (int i = 0; i < current.size(); i++) {
 
 			String[] temp = current.get(i);
@@ -663,39 +670,51 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 			// Log.d(DEBUG_TAG, "Looping: " +time);
 			if (time == hour) {
+
 				int temperature = Integer.parseInt(temp[0]);
 				int wind = Integer.parseInt(temp[3]);
 				int precip = Integer.parseInt(temp[2]);
 				String condition = temp[5];
-				// Log.d(DEBUG_TAG, "Found Info: "+time+"   Temp: " +
-				// temperature + " condition: " + condition);
+				if (type == 0) {
+					// Log.d(DEBUG_TAG, "Found Info: "+time+"   Temp: " +
+					// temperature + " condition: " + condition);
+					TextView temperatureView = (TextView) findViewById(R.id.temperature);
+					temperatureView.setText(Integer.toString(temperature));
+					TextView windSpeed = (TextView) findViewById(R.id.windspeed);
+					windSpeed.setText(Integer.toString(wind) + "mph");
+					TextView precipChance = (TextView) findViewById(R.id.precip);
+					precipChance.setText(Integer.toString(precip) + "%");
+					TextView conditionView = (TextView) findViewById(R.id.condition);
+					conditionView.setText(condition);
+					ImageView weatherIcon = (ImageView) findViewById(R.id.weatherIcon);
+					try {
+						weatherIcon.setImageResource(conditionPicMatcher
+								.get(condition));
+					} catch (Exception E) {
 
-				TextView temperatureView = (TextView) findViewById(R.id.temperature);
-				temperatureView.setText(Integer.toString(temperature));
-				TextView windSpeed = (TextView) findViewById(R.id.windspeed);
-				windSpeed.setText(Integer.toString(wind) + "mph");
-				TextView precipChance = (TextView) findViewById(R.id.precip);
-				precipChance.setText(Integer.toString(precip) + "%");
-				TextView conditionView = (TextView) findViewById(R.id.condition);
-				conditionView.setText(condition);
-				ImageView weatherIcon = (ImageView) findViewById(R.id.weatherIcon);
-				try {
-					weatherIcon.setImageResource(conditionPicMatcher
-							.get(condition));
-				} catch (Exception E) {
+					}
 
+					TextView dayView = (TextView) findViewById(R.id.day);
+					if (temperature < 50) {
+						main.setBackgroundColor(0xFF33B5E5);
+						signalColorChange = 1;
+						// hours.setBackgroundColor(0xFF33B5E5);
+					} else if (temperature > 50) {
+
+						
+						main.setBackgroundColor(0xFFFF9900);
+						signalColorChange = 2;
+						// hours.setBackgroundColor(0xFFFF9900);
+					}
+					return;
 				}
-				if (temperature < 50) {
-
-					main.setBackgroundColor(0xFF33B5E5);
-					signalColorChange = 1;
-					// hours.setBackgroundColor(0xFF33B5E5);
-				} else if (temperature > 50) {
-					main.setBackgroundColor(0xFFFF9900);
-					signalColorChange = 2;
-					// hours.setBackgroundColor(0xFFFF9900);
+				else if(type == 1){
+					TextView temperatureView = (TextView) findViewById(R.id.temp_chooser);
+					temperatureView.setText(Integer.toString(temperature)+"F");
+					TextView precipChance = (TextView) findViewById(R.id.precip_chooser);
+					precipChance.setText(Integer.toString(precip) + "%");
+					
 				}
-				return;
 			}
 
 		}
