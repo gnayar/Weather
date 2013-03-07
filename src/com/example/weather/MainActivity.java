@@ -56,7 +56,8 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	int screenHeight, screenWidth;
 	private CanvasTransformer mTransformer;
 
-	ArrayList<String[]> current;
+	ArrayList<String[]> current = new ArrayList<String[]>();
+	ArrayList<String[]> future = new ArrayList<String[]>();
 	Map<String, Integer> conditionPicMatcher;
 
 	// for gps
@@ -136,27 +137,17 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		JSONParser parser = new JSONParser();
 		JSONParser parser2 = new JSONParser();
+		parser.setContext(context);
+		parser2.setContext(context);
 		Log.v("http", "parser attempting");
 		// ArrayList<String> testArray;
 
-		JSONObject obj,futureObj;
 		try {
-			obj = parser.execute("0","Gainesville","FL").get();
-			futureObj = parser2.execute("1","Gainesville","FL").get();
-			ArrayList<String[]> future = parser.futureForecast(futureObj);
-			current = parser.parse(obj);
+			parser.execute("0","Gainesville","FL");
+			parser2.execute("1","Gainesville","FL");
 
-			for (int i = 0; i < 7; i++) {
-				Log.v("http", current.get(0)[i]);
-			}
-
-		} catch (InterruptedException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			current = new ArrayList<String[]>();
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			current = new ArrayList<String[]>();
 			e.printStackTrace();
 		}
 		
@@ -243,8 +234,6 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			String log = "Name: " + comments.get(i).toString();
 			Log.v("db", log);
 		}
-
-		weatherAtTime(timeChosen.hour, amPm,0);
 
 	}
 

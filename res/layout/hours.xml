@@ -103,4 +103,13 @@
         android:textColor="#FFFFFF"
         android:textSize="30dp" />
 
+   <TextView
+        android:id="@+id/current"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="current"
+        android:textAllCaps="true"
+        android:textColor="#CCCCFF"
+        android:textSize="15dp" />
 </RelativeLayout>

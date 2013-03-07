@@ -14,7 +14,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
  
+import android.content.Context;
 import android.os.AsyncTask;
+import android.text.format.Time;
 import android.util.Log;
 import android.widget.Toast;
  
@@ -29,6 +31,7 @@ import android.widget.Toast;
  
 public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 	int type = 0;
+	Context context;
 	private final String API_KEY = "6421665c1fee1f47";
 	//my private generated key to access the weather api
 	//will be a part of the url to send/receive json requests
@@ -37,7 +40,7 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 		//always 34 because 24 hours weather and then 24 + n for n number of days (10)
 	}
 	
-	
+	@Override
 	public JSONObject doInBackground(String... params) {
 		type = Integer.valueOf(params[0]);
 		String place = params[1];
@@ -81,6 +84,23 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 		
 	}
 	
+	 
+    public void setContext(Context temp){
+    	this.context = temp;
+    }
+	
+    @Override
+    protected void onPostExecute(JSONObject Object){
+    	if(type== 0){
+    	((MainActivity)context).current = parse(Object);
+    	int hour = ((MainActivity)context).timeChosen.hour;
+    	String amPm = ((MainActivity)context).amPm;
+    	((MainActivity)context).weatherAtTime(hour, amPm, 0);
+    	}
+    	else if(type == 1){
+    	((MainActivity)context).future = futureForecast(Object);
+    	}
+    }
 	
 	public ArrayList<String[]> parse(JSONObject obj) {
 		String[] data = new String[7]; //will always contain 7 values
