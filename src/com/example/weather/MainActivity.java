@@ -427,6 +427,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 						amPm = "pm";
 					}
 					displayTime(1);
+					weatherAtTime(timeChosen.hour,amPm, 1);
 				}
 
 			}
