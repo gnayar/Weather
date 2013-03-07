@@ -96,27 +96,40 @@
         android:layout_weight="0.01" >
 
         <TextView
-            android:id="@+id/date"
+            android:id="@+id/time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:paddingLeft="10dp"
-            android:text="Monday"
+            android:text="6:00am"
             android:textAllCaps="true"
             android:textColor="#FFFFFF"
             android:textSize="20dp" />
 
         <TextView
-            android:id="@+id/clock"
+            android:id="@+id/day"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:layout_toRightOf="@+id/date"
-            android:paddingLeft="4dp"
-            android:text="6:00am"
+            android:paddingRight="10dp"
+            android:text="Monday"
             android:textAllCaps="true"
             android:textColor="#CCCCFF"
             android:textSize="15dp" />
+
+        <TextView
+            android:id="@+id/time_mod"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@+id/time"
+            android:paddingLeft="10dp"
+            android:text="PLUS ONE HOUR"
+            android:textAllCaps="true"
+            android:textColor="#00FFFFFF"
+            android:textSize="10dp" />
+
     </RelativeLayout>
 
 </LinearLayout>

@@ -27,7 +27,6 @@ import android.widget.Toast;
 
 
 public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
-	
 	private final String API_KEY = "6421665c1fee1f47";
 	//my private generated key to access the weather api
 	//will be a part of the url to send/receive json requests
