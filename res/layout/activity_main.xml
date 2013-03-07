@@ -1,42 +1,122 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="fill_parent"
     android:layout_height="match_parent"
     android:background="#FF33B5E5"
+    android:orientation="vertical"
     tools:context=".MainActivity" >
 
-    <ImageView
-        android:id="@+id/weatherIcon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp"
-        android:paddingBottom = "50dp"
-        android:scaleType="centerCrop"
-        android:layout_centerInParent="true"
-        android:src="@drawable/clim_cloud" />
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight=".75"
+        android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/mainText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:paddingBottom="75dp"
-        android:text="Long Press to set time"
-        android:textColor="#FFFFFF"
-        android:textSize="20dp" />
+        <TextView
+            android:id="@+id/condition"
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_centerHorizontal="true"
+            android:layout_weight=".3"
+            android:gravity="center"
+            android:text="Clear"
+            android:textColor="#FFFFFF"
+            android:textSize="20dp" />
 
-    <TextView
-        android:id="@+id/conditions"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_above="@+id/mainText"
-        android:paddingBottom="50dp"
-        android:text="Currently 75 Degrees"
-        android:textColor="#FFFFFF"
-        android:textSize="20dp" />
+        <ImageView
+            android:id="@+id/weatherIcon"
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scaleType="centerCrop"
+            android:src="@drawable/clim_sun" />
 
-</RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight=".75" >
+
+            <TextView
+                android:id="@+id/temperature"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:text="60"
+                android:textColor="#FFFFFF"
+                android:textSize="70dp"
+                android:textStyle="bold" />
+            
+            <TextView
+                android:id="@+id/degree"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@id/temperature"
+                android:layout_toRightOf="@id/temperature"
+                android:paddingTop="25dp"
+                android:text="F"
+                android:textColor="#FFFFFF"
+                android:textSize="25dp" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/temperature"
+                android:gravity="center_horizontal"
+                android:paddingTop="10dp" >
+
+                <TextView
+                    android:id="@+id/precip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="50dp"
+                    android:text="25%"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20dp" />
+
+                <TextView
+                    android:id="@+id/windspeed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginLeft="50dp"
+                    android:layout_toRightOf="@id/precip"
+                    android:text="35mph"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20dp" />
+            </RelativeLayout>
+        </RelativeLayout>
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_weight="0.01" >
+
+        <TextView
+            android:id="@+id/date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:paddingLeft="10dp"
+            android:text="Monday"
+            android:textAllCaps="true"
+            android:textColor="#FFFFFF"
+            android:textSize="20dp" />
+
+        <TextView
+            android:id="@+id/clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@+id/date"
+            android:paddingLeft="4dp"
+            android:text="6:00am"
+            android:textAllCaps="true"
+            android:textColor="#CCCCFF"
+            android:textSize="15dp" />
+    </RelativeLayout>
+
+</LinearLayout>

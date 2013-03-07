@@ -1,6 +1,10 @@
 package com.example.weather;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,19 +100,13 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 		//Finding current time
 		Time now = new Time();
 		now.setToNow();
-		TextView mainText = (TextView) findViewById(R.id.mainText);
 		if(now.hour>12){
 			now.hour-=12;
 			amPm = "pm";
 		}
 
 		timeChosen = now;
-		if(timeChosen.minute<10){
-    		mainText.setText("Current time is: "+timeChosen.hour+":0"+timeChosen.minute+amPm); 
-    	}
-    	else{
-    		mainText.setText("Current time is: "+timeChosen.hour+":"+timeChosen.minute+amPm); 
-    	}
+		displayTime(0);
 		
 		
 		
@@ -146,7 +144,6 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 			current = new ArrayList<String[]>();
 			e.printStackTrace();
 		}
-
 
 
 		/*OKAY GAUTAM READ
@@ -236,19 +233,10 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 			String log = "Name: " + comments.get(i).toString();
 			Log.v("db", log);
 		}
+		
+		
 	
-		String[] currentHour = current.get(0);
-		int currentTime = Integer.parseInt(currentHour[6]);
-		int currentTemp = Integer.parseInt(currentHour[0]);
-		String currentCondition = currentHour[5];
-		TextView conditions = (TextView)findViewById(R.id.conditions);
-		conditions.setText(currentCondition);
-		ImageView weatherIcon = (ImageView)findViewById(R.id.weatherIcon);
-		try{
-			weatherIcon.setImageResource(conditionPicMatcher.get(currentCondition));
-		}catch(Exception E){
-			
-		}
+		weatherAtTime(timeChosen.hour,amPm);
 		
 	}
 	
@@ -282,6 +270,17 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 			return true;
 
 		case (MotionEvent.ACTION_MOVE):
+			//generate swiping time boundary
+			Time now = new Time();
+			now.setToNow();
+			int limiter = now.hour;
+			int comparer = timeChosen.hour;
+			if(amPm.equals("pm")){
+				comparer+=12;
+			}
+			if(now.hour == 0){
+				now.hour = 24;
+			}
 			
 			//Log.d(DEBUG_TAG,"Action was MOVE");
 			int x1 = (int) event.getX();
@@ -307,7 +306,12 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 				Log.v("state", "Left pull down");
 				
 				if((timeChangeCount == 0)&&(!inHours)){
-					changeHour(-1);
+					 Log.d(DEBUG_TAG, "Time " + Integer.toString(comparer)+" Limiter " + Integer.toString(limiter) );
+					if(comparer != limiter){
+						changeHour(-1);
+						displayTime(0);
+						weatherAtTime(timeChosen.hour, amPm);
+					}
 				}
 				
 				
@@ -317,13 +321,22 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 				Log.v("state", "Left pull up");
 				
 				if((timeChangeCount == 0)&&(!inHours)){
-					changeHour(1);
+					if(comparer +1 != limiter){
+						changeHour(1);
+						displayTime(0);
+						weatherAtTime(timeChosen.hour, amPm);
+					}
 				}
 			} else if (previousState == State.Q1 && state == State.Q4) {
 				//((TextView) findViewById(R.id.text)).setText("Right Down");
 				Log.v("state", "Right pull down");
 				if((timeChangeCount == 0)&&(!inHours)){
-					changeHour(-6);
+					 Log.d(DEBUG_TAG, "Time " + Integer.toString(comparer)+" Limiter " + Integer.toString(limiter) );
+					if(comparer != limiter){
+						changeHour(-1);
+						displayTime(0);
+						weatherAtTime(timeChosen.hour, amPm);
+					}
 				}
 			
 						
@@ -333,12 +346,15 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 				Log.v("state", "Right pull up");
 				
 				if((timeChangeCount == 0)&&(!inHours)){
-					changeHour(6);
+					if(comparer +1 != limiter){
+						changeHour(1);
+						displayTime(0);
+						weatherAtTime(timeChosen.hour, amPm);
+					}
 				}
 			}
 			
 			if(inHours==true){
-				TextView t1 = (TextView) findViewById(R.id.chosendate);
 				
 				int angle = (int) Math.toDegrees(Math.atan2(x1 - screenWidth / 2, y1 - screenHeight/2));
 			    if(angle < 0){
@@ -353,21 +369,13 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 			    if(d>90){
 			    	timeChosen.hour = calculateClockAngle(angle);
 			    	timeChosen.minute = 0;
-			    	t1.setText(timeChosen.hour+":00"+amPm);
+			    	displayTime(1);
 			    }
 			    else{
-			    	Time now = new Time();
+			    	now = new Time();
 					now.setToNow();
 			    	timeChosen = now;
-			    	if(timeChosen.hour>12){
-			    		timeChosen.hour-=12;
-			    	}
-			    	if(timeChosen.minute<10){
-			    		t1.setText(timeChosen.hour+":0"+timeChosen.minute+amPm); 
-			    	}
-			    	else{
-			    		t1.setText(timeChosen.hour+":"+timeChosen.minute+amPm); 
-			    	}
+			    	displayTime(1);
 			    }
 			    		
 				   
@@ -380,13 +388,8 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 				inHours = false;
 				setContentView(R.layout.activity_main);
 				
-				TextView mainText = (TextView) findViewById(R.id.mainText);
-				if(timeChosen.minute<10){
-		    		mainText.setText("You chose "+timeChosen.hour+":0"+timeChosen.minute+amPm); 
-		    	}
-		    	else{
-		    		mainText.setText("You chose "+timeChosen.hour+":"+timeChosen.minute+amPm); 
-		    	}
+				displayTime(0);
+				weatherAtTime(timeChosen.hour, amPm);
 			}
 			else if(!inHours){
 				amPmCount = 0;
@@ -431,14 +434,97 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 		
 		timeChangeCount = 1;
 		
-		TextView mainText = (TextView) findViewById(R.id.mainText);
+		displayTime(0);
+	}
+	
+	public void displayTime(int type){
+		TextView clock;
+		TextView dayView;
+		if(type == 0){
+			clock = (TextView) findViewById(R.id.clock);
+			dayView = (TextView) findViewById(R.id.date);
+		}
+		else{
+			clock = (TextView) findViewById(R.id.choosertime);
+			dayView = (TextView) findViewById(R.id.chooserdate);
+		}
+		Time now = new Time();
+		now.setToNow();
+		int today = now.weekDay;
+		String day = "", tomorrowDay = "";
+		switch (today) {
+		case 0:
+			day = "Sunday";
+			tomorrowDay = "Monday";
+			break;
+		case 1:
+			day = "Monday";
+			tomorrowDay = "Tuesday";
+			break;
+		case 2:
+			day = "Tuesday";
+			tomorrowDay = "Wednesday";
+			break;
+		case 3:
+			day = "Wednesday";
+			tomorrowDay = "Thursday";
+			break;
+		case 4:
+			day = "Thursday";
+			tomorrowDay = "Friday";
+			break;
+		case 5:
+			day = "Friday";
+			tomorrowDay = "Saturday";
+			break;
+		case 6:
+			day = "Saturday";
+			tomorrowDay = "Sunday";
+			break;
+		}
+		int truetime = timeChosen.hour;
+		if(timeChosen.hour>12){
+			timeChosen.hour -=12;
+			amPm = "pm";
+		}
+		if(amPm.equals("pm")){
+			truetime+=12;
+			if(truetime == 24){
+				truetime = 0;
+			}
+		}
+		
 		if(timeChosen.minute<10){
-    		mainText.setText("You chose "+timeChosen.hour+":0"+timeChosen.minute+amPm); 
+			if(truetime< now.hour){
+				day = tomorrowDay;
+			}
+			if(truetime == 12){
+				clock.setText("Noon");
+			}
+			else if(truetime == 0){
+				clock.setText("Midnight");
+			}
+			else{
+				clock.setText(timeChosen.hour+":0"+timeChosen.minute+amPm); 
+			}
     	}
     	else{
-    		mainText.setText("You chose "+timeChosen.hour+":"+timeChosen.minute+amPm); 
+    		if(truetime< now.hour){
+				day = tomorrowDay;
+			}
+			if(truetime == 12){
+				clock.setText("Noon");
+			}
+			else if(truetime == 0){
+				clock.setText("Midnight");
+			}
+			else{
+				clock.setText(timeChosen.hour+":"+timeChosen.minute+amPm); 
+			}
     	}
+		dayView.setText(day);
 	}
+	
 	private int calculateClockAngle(int angle) {
 		int upperLimit = 15;
 		int hour = 6;
@@ -488,14 +574,9 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 					amPm = "am";
 				}
 				
-				TextView mainText = (TextView) findViewById(R.id.mainText);
-				if(timeChosen.minute<10){
-		    		mainText.setText("You chose "+timeChosen.hour+":0"+timeChosen.minute+amPm); 
-		    	}
-		    	else{
-		    		mainText.setText("You chose "+timeChosen.hour+":"+timeChosen.minute+amPm); 
-		    	}
+				displayTime(0);
 				amPmCount = 1;
+				weatherAtTime(timeChosen.hour, amPm);
 				
 			}
         	return true;
@@ -537,7 +618,44 @@ public class MainActivity extends SlidingActivity implements LocationListener{
 	
 	
 	
-	
+	public void weatherAtTime(int hour, String amPmChosen){
+		if(amPmChosen.equals("pm")){
+			hour +=12;
+			if(hour == 24){
+				hour = 0;
+			}
+		}
+		
+		for(int i = 0; i<current.size();i++){
+			
+			String[] temp = current.get(i);
+			int time = Integer.parseInt(temp[6]);
+			//Log.d(DEBUG_TAG, "Looping: " +time); 
+			if(time == hour){				
+				int temperature = Integer.parseInt(temp[0]);
+				int wind = Integer.parseInt(temp[3]);
+				int precip = Integer.parseInt(temp[2]);
+				String condition = temp[5];
+				//Log.d(DEBUG_TAG, "Found Info: "+time+"   Temp: " + temperature + " condition: " + condition); 
+				TextView temperatureView = (TextView)findViewById(R.id.temperature);
+				temperatureView.setText(Integer.toString(temperature));
+				TextView windSpeed = (TextView)findViewById(R.id.windspeed);
+				windSpeed.setText(Integer.toString(wind) +"mph");
+				TextView precipChance = (TextView)findViewById(R.id.precip);
+				precipChance.setText(Integer.toString(precip)+"%");
+				TextView conditionView = (TextView)findViewById(R.id.condition);
+				conditionView.setText(condition);
+				ImageView weatherIcon = (ImageView)findViewById(R.id.weatherIcon);
+				try{
+					weatherIcon.setImageResource(conditionPicMatcher.get(condition));
+				}catch(Exception E){
+					
+				}
+				return;
+			}
+			
+		}
+	}
 	
 	
 	

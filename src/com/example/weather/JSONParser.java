@@ -103,7 +103,7 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 				data[5] = time.getString("condition");
 				data[6] = String.valueOf(fcttime.getInt("hour"));
 				
-				conditions.add(data);
+				conditions.add((String[])data.clone());
 			
 			}
 
