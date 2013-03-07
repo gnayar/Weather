@@ -20,6 +20,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.provider.Settings;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MotionEventCompat;
@@ -48,6 +49,8 @@ import com.slidingmenu.lib.app.SlidingActivity;
 public class MainActivity extends SlidingActivity implements LocationListener {
 	private static final String DEBUG_TAG = "Motion";
 
+  	
+	
 	private GestureDetectorCompat mDetector;
 	Context context;
 	int screenHeight, screenWidth;
@@ -132,12 +135,15 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		// currently using wunderground's api!!!!
 
 		JSONParser parser = new JSONParser();
+		JSONParser parser2 = new JSONParser();
 		Log.v("http", "parser attempting");
 		// ArrayList<String> testArray;
 
-		JSONObject obj;
+		JSONObject obj,futureObj;
 		try {
-			obj = parser.execute("safsfs").get();
+			obj = parser.execute("0","Gainesville","FL").get();
+			futureObj = parser2.execute("1","Gainesville","FL").get();
+			ArrayList<String[]> future = parser.futureForecast(futureObj);
 			current = parser.parse(obj);
 
 			for (int i = 0; i < 7; i++) {
@@ -153,6 +159,13 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			current = new ArrayList<String[]>();
 			e.printStackTrace();
 		}
+		
+		//testing forecast json obj
+		
+//				String[] test = future.get(4);
+//				for(int i = 0; i < 10; i++) {
+//					Log.v("http", test[i]);
+//				}
 
 		/*
 		 * OKAY GAUTAM READ
