@@ -93,12 +93,11 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
     protected void onPostExecute(JSONObject Object){
     	if(type== 0){
     	((MainActivity)context).current = parse(Object);
-    	int hour = ((MainActivity)context).timeChosen.hour;
-    	String amPm = ((MainActivity)context).amPm;
-    	((MainActivity)context).weatherAtTime(hour, amPm, 0);
+    	((MainActivity)context).weatherAtTime(0);
     	}
     	else if(type == 1){
     	((MainActivity)context).future = futureForecast(Object);
+    	((MainActivity)context).setUpForecast();
     	}
     }
 	
@@ -135,7 +134,6 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 				data[4] = String.valueOf(temp_winddir.getInt("degrees")); //in degrees so easier to bound and choose icon
 				data[5] = time.getString("condition");
 				data[6] = String.valueOf(fcttime.getInt("hour"));
-				
 				conditions.add((String[])data.clone());
 			
 				
@@ -202,6 +200,7 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 				data[8] = date.getString("weekday");
 				data[9] = date.getString("ampm");
 				Log.v("http", data[7]);
+
 				
 				forecast.add((String[])data.clone());
 				

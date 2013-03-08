@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="80dp"
+    android:layout_height="80dp"
+    android:padding="5dp" >
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="#2B2B2B" >
+
+        <ImageView
+            android:id="@+id/condition_pic"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:padding="5dp"
+            android:scaleType="fitXY" />
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_toRightOf="@id/condition_pic"
+            android:background="#2B2B2B"
+            android:orientation="vertical"
+            android:paddingBottom="20dp"
+            android:paddingLeft="10dp"
+            android:paddingTop="10dp" >
+
+            <TextView
+                android:id="@+id/day"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="30"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/high_low"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/precip"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>

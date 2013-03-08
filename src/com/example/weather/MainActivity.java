@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.location.Criteria;
 import android.location.Location;
@@ -49,8 +50,6 @@ import com.slidingmenu.lib.app.SlidingActivity;
 public class MainActivity extends SlidingActivity implements LocationListener {
 	private static final String DEBUG_TAG = "Motion";
 
-  	
-	
 	private GestureDetectorCompat mDetector;
 	Context context;
 	int screenHeight, screenWidth;
@@ -65,8 +64,13 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	// Variables to set time
 	boolean inHours = false;
-	Time timeChosen;
-	String amPm = "am";
+	Time now = new Time();// current moment
+	Time internalTime = new Time();// chosen time in internal format [0- 47] =
+									// [now - 47 hours later]
+	Time displayTime = new Time();// time meant for display [0-12]
+	boolean am = true;// am or pm status for displayTime
+	boolean today = true;// today or tomorrow status for displayTime
+
 	int amPmCount = 0;
 	int timeChangeCount = 0;
 
@@ -81,6 +85,14 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	int touchdownX = 0;
 	int touchdownY = 0;
 	boolean increasingY = false;
+	int hoursAdded = 0;
+
+	// Views
+	TextView clockSwipeTransition;// shows transition if swiping to change hours
+	TextView clock;// says what time it is, exists in two layouts
+	TextView dayView;// says what time it is, exists in two layouts
+	LinearLayout main;// root layout of main screen
+	RelativeLayout menu;// root layout of clock screen
 
 	// Called when the activity is first created.
 	@Override
@@ -90,93 +102,53 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		setBehindContentView(R.layout.menu);
 		context = this;
 		mDetector = new GestureDetectorCompat(this, new MyGestureListener());
-		SlidingMenu menu = getSlidingMenu();
-		menu.setBehindOffsetRes(R.dimen.slidingmenu_offset);
-		menu.setFadeEnabled(true);
-		menu.setFadeDegree(0.35f);
-		menu.setMode(SlidingMenu.LEFT_RIGHT);
-		menu.setSecondaryMenu(R.layout.menu2);
-		menu.setAboveOffset(20);
-		menu.setShadowWidthRes(R.dimen.shadow_width);
-		menu.setShadowDrawable(R.drawable.shadow);
-		menu.setSecondaryShadowDrawable(R.drawable.shadow2);
-		menu.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
+
+		setUpLayoutVars();
+
+		setUpSlidingMenu();
 
 		setUpMap();
 
-		ListView days = (ListView) findViewById(R.id.days);
-		String[] stringArray = new String[] { "Tomorrow", "Day After" };
-		ArrayAdapter<String> modeAdapter = new ArrayAdapter<String>(context,
-				android.R.layout.simple_list_item_1, android.R.id.text1,
-				stringArray);
-		days.setAdapter(modeAdapter);
 
 		// Finding current time
-		Time now = new Time();
 		now.setToNow();
-		if (now.hour > 12) {
-			now.hour -= 12;
-			amPm = "pm";
-		}
+		internalTime.setToNow();
+		internalToDisplayTime();
+		showTime(0);
 
-		timeChosen = now;
-		displayTime(0);
+		setUpMotion();
 
-		state = State.IDLE;
-		previousState = State.IDLE;
+		fetchData();
 
-		DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-		screenWidth = metrics.widthPixels;
-		screenHeight = metrics.heightPixels;
-
-		Log.v("state", "Screen width: " + screenWidth + " Screen height: "
-				+ screenHeight);
-
-		// JSON Testing
-		// currently using wunderground's api!!!!
-
-		JSONParser parser = new JSONParser();
-		JSONParser parser2 = new JSONParser();
-		parser.setContext(context);
-		parser2.setContext(context);
-		Log.v("http", "parser attempting");
-		// ArrayList<String> testArray;
-
-		try {
-			parser.execute("0","Gainesville","FL");
-			parser2.execute("1","Gainesville","FL");
-
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		setUpForecast();
 		
-		//testing forecast json obj
+		setUpDataBase();
+
+		setUpGPS();
+
+	}
+
+	public void setUpClock(){
+		now.setToNow();
+		Time inputTime = now;
+		inputTime.hour+=6;
+		inputClockSetup(inputTime,1);
+
+		inputTime.hour+=6;
+		inputClockSetup(inputTime,2);
+
+		inputTime.hour+=6;
+		inputClockSetup(inputTime,3);
 		
-//				String[] test = future.get(4);
-//				for(int i = 0; i < 10; i++) {
-//					Log.v("http", test[i]);
-//				}
+	}
+	
+	private void setUpLayoutVars() {
+		clockSwipeTransition = (TextView) findViewById(R.id.time_mod);
+		LinearLayout main = (LinearLayout) findViewById(R.id.main);
+		RelativeLayout menu = (RelativeLayout) findViewById(R.id.menu);
+	}
 
-		/*
-		 * OKAY GAUTAM READ
-		 * 
-		 * Currently, the data is being held in an arraylist and I am only
-		 * parsing some data. Just let me know if you need more. Its currently
-		 * stored based on indices -> I know this is retarded I will use a hash
-		 * or key value pair soon
-		 */
-
-		// TESTING DATABASE
-		CommentsDataSource datasource = new CommentsDataSource(this);
-		datasource.open();
-
-		Log.v("db", "Inserting...");
-
-		datasource.createComment("TEST");
-		datasource.createComment("TEST1");
-		datasource.createComment("TEST2");
-
+	private void setUpGPS() {
 		// GPS TESTING
 		LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
 		boolean enabled = service
@@ -225,6 +197,34 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			}
 		}
 
+	}
+
+	private void setUpDataBase() {
+		// testing forecast json obj
+
+		// String[] test = future.get(4);
+		// for(int i = 0; i < 10; i++) {
+		// Log.v("http", test[i]);
+		// }
+
+		/*
+		 * OKAY GAUTAM READ
+		 * 
+		 * Currently, the data is being held in an arraylist and I am only
+		 * parsing some data. Just let me know if you need more. Its currently
+		 * stored based on indices -> I know this is retarded I will use a hash
+		 * or key value pair soon
+		 */
+
+		// TESTING DATABASE
+		CommentsDataSource datasource = new CommentsDataSource(this);
+		datasource.open();
+
+		Log.v("db", "Inserting...");
+
+		datasource.createComment("TEST");
+		datasource.createComment("TEST1");
+		datasource.createComment("TEST2");
 		Log.v("db", "Reading...");
 		List<Comment> comments = datasource.getAllComments();
 
@@ -234,6 +234,72 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			String log = "Name: " + comments.get(i).toString();
 			Log.v("db", log);
 		}
+	}
+
+	private void fetchData() {
+		JSONParser parser = new JSONParser();
+		JSONParser parser2 = new JSONParser();
+		parser.setContext(context);
+		parser2.setContext(context);
+		Log.v("http", "parser attempting");
+		// ArrayList<String> testArray;
+
+		try {
+			parser.execute("0", "Gainesville", "FL");
+			parser2.execute("1", "Gainesville", "FL");
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		
+	}
+
+	private void setUpMotion() {
+		state = State.IDLE;
+		previousState = State.IDLE;
+
+		DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+		screenWidth = metrics.widthPixels;
+		screenHeight = metrics.heightPixels;
+
+	}
+
+	public void setUpForecast() {
+		
+		ArrayList<Temperature> temps= new ArrayList<Temperature>();
+		for(int i = 0; i <future.size();i++){
+			String[] item = future.get(i);
+			Temperature temp = new Temperature(Integer.parseInt(item[0]), Integer.parseInt(item[1]), Integer.parseInt(item[3]),
+					Integer.parseInt(item[2]), Integer.parseInt(item[4]), Integer.parseInt(item[5]), item[7],
+					 item[8],conditionPicMatcher.get(item[7]));
+			Log.d(DEBUG_TAG, "Looping: " +(item[7]));
+			Log.d(DEBUG_TAG, "Looping: " +conditionPicMatcher.get(item[7]));
+			temps.add(temp);
+		}
+		ListView days = (ListView)findViewById(R.id.days);
+		days.setCacheColorHint(Color.TRANSPARENT); // not sure if this is required for you. 
+		days.setFastScrollEnabled(true);
+		days.setScrollingCacheEnabled(true);
+		ForecastAdapter adapter = new ForecastAdapter(this, R.layout.forecast_row_item, temps);
+	    days.setAdapter(adapter);	
+
+	}
+
+	private void setUpSlidingMenu() {
+
+		SlidingMenu menu = getSlidingMenu();
+		menu.setBehindOffsetRes(R.dimen.slidingmenu_offset);
+		menu.setFadeEnabled(true);
+		menu.setFadeDegree(0.35f);
+		menu.setMode(SlidingMenu.LEFT_RIGHT);
+		menu.setSecondaryMenu(R.layout.menu2);
+		menu.setAboveOffset(20);
+		menu.setShadowWidthRes(R.dimen.shadow_width);
+		menu.setShadowDrawable(R.drawable.shadow);
+		menu.setSecondaryShadowDrawable(R.drawable.shadow2);
+		menu.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
 
 	}
 
@@ -242,16 +308,15 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		this.mDetector.onTouchEvent(event);
 		int action = MotionEventCompat.getActionMasked(event);
 
-		TextView clockMod = (TextView) findViewById(R.id.time_mod);
+		int x1 = (int) event.getX();
+		int y1 = (int) event.getY();
 
 		switch (action) {
 		case (MotionEvent.ACTION_DOWN):
-
+			// point where contact initiates
 			touchdownX = (int) event.getX();
 			touchdownY = (int) event.getY();
-			Log.d(DEBUG_TAG, "Action was DOWN: x -> " + touchdownX + " y -> "
-					+ touchdownY);
-
+			// State of entry
 			if (touchdownX < screenWidth / 2 && touchdownY < screenHeight / 2) {
 				previousState = State.Q2;
 
@@ -266,35 +331,26 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				previousState = State.Q4;
 			}
 
-			// Log.v("state", "previous state: " + previousState.toString());
 			return true;
 
 		case (MotionEvent.ACTION_MOVE):
 			// generate swiping time boundary
-			Time now = new Time();
 			now.setToNow();
-			int limiter = now.hour;
-			int comparer = timeChosen.hour;
-			if (amPm.equals("pm")) {
-				comparer += 12;
-			}
-			if (now.hour == 0) {
-				now.hour = 24;
-			}
-
+			int lowerLimit = now.hour;
+			int upperLimit = lowerLimit + 23;
 			// Log.d(DEBUG_TAG,"Action was MOVE");
-			int x1 = (int) event.getX();
-			int y1 = (int) event.getY();
-
 			int distX = (int) Math.pow((x1 - touchdownX), 2);
 			int distY = (int) Math.pow((y1 - touchdownY), 2);
 			int distance = (int) Math.sqrt(distX + distY);
+
+			// Moving up or down?
 			if (y1 > touchdownY) {
-				increasingY = false;
+				increasingY = false;// moving towards bottom of screen
 			} else {
-				increasingY = true;
+				increasingY = true;// moving up the screen from bottom
 			}
 
+			// Current State
 			if (x1 < screenWidth / 2 && y1 < screenHeight / 2) {
 				state = State.Q2;
 			} else if (x1 > screenWidth / 2 && y1 < screenHeight / 2) {
@@ -310,86 +366,80 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			// moved to...
 			// now do the logic
 
-			Log.v("state", "Previous state: " + previousState.toString()
-					+ " Current state: " + state.toString());
 			if (previousState == State.Q2 && distance > 100 && !increasingY) {
-				if (comparer != limiter && !inHours) {
+				if ((internalTime.hour > lowerLimit) && !inHours) {
 					Log.v("state", "Left pull down");
-					clockMod.setText("AN HOUR EARLIER");
-					clockMod.setTextColor(0x50CCCCFF);
+					clockSwipeTransition.setText("AN HOUR EARLIER");
+					clockSwipeTransition.setTextColor(0x50CCCCFF);
 					if (distance > 200) {
-						clockMod.setTextColor(0xFFFFFFFF);
+						clockSwipeTransition.setTextColor(0xFFFFFFFF);
 						if (timeChangeCount == 0) {
-
-							changeHour(-1);
-							displayTime(0);
-							weatherAtTime(timeChosen.hour, amPm, 0);
+							internalTime.hour -= 1;
+							internalToDisplayTime();
+							showTime(0);
+							weatherAtTime(0);
+							timeChangeCount = 1;
 						}
 					}
 				}
 
-				// ((TextView) findViewById(R.id.text)).setText("Left Down");
 			} else if (previousState == State.Q3 && distance > 100
 					&& increasingY && !inHours) {
-				// ((TextView) findViewById(R.id.text)).setText("Left Up");
+				;
 				Log.v("state", "Left pull up");
-				if (comparer + 1 != limiter) {
-					clockMod.setText("AN HOUR LATER");
-					clockMod.setTextColor(0x50CCCCFF);
+				if ((internalTime.hour < upperLimit) && !inHours) {
+					clockSwipeTransition.setText("AN HOUR LATER");
+					clockSwipeTransition.setTextColor(0x50CCCCFF);
 					if (distance > 200) {
-						clockMod.setTextColor(0xFFFFFFFF);
+						clockSwipeTransition.setTextColor(0xFFFFFFFF);
 						if (timeChangeCount == 0) {
-
-							changeHour(1);
-							displayTime(0);
-							weatherAtTime(timeChosen.hour, amPm, 0);
+							internalTime.hour += 1;
+							internalToDisplayTime();
+							showTime(0);
+							weatherAtTime(0);
+							timeChangeCount = 1;
 						}
 					}
 				}
 			} else if (previousState == State.Q1 && distance > 100
 					&& !increasingY && !inHours) {
-				// ((TextView) findViewById(R.id.text)).setText("Right Down");
-				Log.v("state", "Right pull down");
-				if (comparer != limiter) {
-					clockMod.setText("AN HOUR EARLIER");
-					clockMod.setTextColor(0x50CCCCFF);
+				if ((internalTime.hour > lowerLimit) && !inHours) {
+					Log.v("state", "Right pull down");
+					clockSwipeTransition.setText("AN HOUR EARLIER");
+					clockSwipeTransition.setTextColor(0x50CCCCFF);
 					if (distance > 200) {
-						clockMod.setTextColor(0xFFFFFFFF);
+						clockSwipeTransition.setTextColor(0xFFFFFFFF);
 						if (timeChangeCount == 0) {
-							Log.d(DEBUG_TAG,
-									"Time " + Integer.toString(comparer)
-											+ " Limiter "
-											+ Integer.toString(limiter));
-
-							changeHour(-1);
-							displayTime(0);
-							weatherAtTime(timeChosen.hour, amPm, 0);
+							internalTime.hour -= 1;
+							internalToDisplayTime();
+							showTime(0);
+							weatherAtTime(0);
+							timeChangeCount = 1;
 						}
 					}
+
 				}
 
 			} else if (previousState == State.Q4 && distance > 100
 					&& increasingY && !inHours) {
-				// ((TextView) findViewById(R.id.text)).setText("Right Up");
 
 				Log.v("state", "Right pull up");
-				if (comparer + 1 != limiter) {
-					clockMod.setText("AN HOUR LATER");
-					clockMod.setTextColor(0x50CCCCFF);
+				if ((internalTime.hour < upperLimit) && !inHours) {
+					clockSwipeTransition.setText("AN HOUR LATER");
+					clockSwipeTransition.setTextColor(0x50CCCCFF);
 					if (distance > 200) {
-						clockMod.setTextColor(0xFFFFFFFF);
+						clockSwipeTransition.setTextColor(0xFFFFFFFF);
 						if (timeChangeCount == 0) {
-
-							changeHour(1);
-							displayTime(0);
-							weatherAtTime(timeChosen.hour, amPm, 0);
+							internalTime.hour += 1;
+							internalToDisplayTime();
+							showTime(0);
+							weatherAtTime(0);
+							timeChangeCount = 1;
 						}
 					}
 				}
 			}
-
-			if (inHours == true) {
-
+			if (inHours) {
 				int angle = (int) Math.toDegrees(Math.atan2(x1 - screenWidth
 						/ 2, y1 - screenHeight / 2));
 				if (angle < 0) {
@@ -399,26 +449,20 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				double dY = Math.pow((y1 - screenHeight / 2), 2);
 
 				double d = Math.sqrt(dX + dY);
-				Log.d(DEBUG_TAG, Double.toString(d));
+				// Log.d(DEBUG_TAG, Double.toString(d));
 
 				if (d > 90) {
-					timeChosen.hour = calculateClockAngle(angle);
-					weatherAtTime(timeChosen.hour,amPm,1);
-					timeChosen.minute = 0;
-					displayTime(1);
+					int hoursAdded = calculateClockAngle(angle);
+					clockToInternalTime(hoursAdded);
+					internalTime.minute = 0;
 				} else {
-					now = new Time();
-					now.setToNow();
-					timeChosen = now;
-					if (timeChosen.hour <= 12) {
-						amPm = "am";
-					} else {
-						amPm = "pm";
-					}
-					displayTime(1);
-					weatherAtTime(timeChosen.hour,amPm, 1);
+					internalTime.setToNow();
+
 				}
 
+				internalToDisplayTime();
+				showTime(1);
+				weatherAtTime(1);
 			}
 
 			return true;
@@ -429,19 +473,40 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 				setContentView(R.layout.activity_main);
 				LinearLayout view = (LinearLayout) findViewById(R.id.main);
-				
+
 				Animation a1 = AnimationUtils.loadAnimation(context,
 						android.R.anim.fade_in);
 				a1.setDuration(200);
 				view.startAnimation(a1);
 
-				displayTime(0);
-				weatherAtTime(timeChosen.hour, amPm, 0);
+				int angle = (int) Math.toDegrees(Math.atan2(x1 - screenWidth
+						/ 2, y1 - screenHeight / 2));
+				if (angle < 0) {
+					angle += 360;
+				}
+				double dX = Math.pow((x1 - screenWidth / 2), 2);
+				double dY = Math.pow((y1 - screenHeight / 2), 2);
+
+				double d = Math.sqrt(dX + dY);
+				// Log.d(DEBUG_TAG, Double.toString(d));
+
+				if (d > 90) {
+					int hoursAdded = calculateClockAngle(angle);
+					clockToInternalTime(hoursAdded);
+					internalTime.minute = 0;
+				} else {
+					internalTime.setToNow();
+
+				}
+				internalToDisplayTime();
+				showTime(0);
+				weatherAtTime(0);
+
 			} else if (!inHours) {
 				amPmCount = 0;
 				timeChangeCount = 0;
 
-				clockMod.setTextColor(0x00CCCCFF);
+				clockSwipeTransition.setTextColor(0x00CCCCFF);
 
 			}
 			return true;
@@ -458,32 +523,103 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	}
 
-	private void changeHour(int change) {
-		timeChosen.hour += change;
-		if (timeChosen.hour > 12) {
-			timeChosen.hour -= 12;
-			if (amPm.equals("am")) {
-				amPm = "pm";
-			} else if (amPm.equals("pm")) {
-				amPm = "am";
-			}
-		} else if (timeChosen.hour < 1) {
-			timeChosen.hour += 12;
-			if (amPm.equals("am")) {
-				amPm = "pm";
-			} else if (amPm.equals("pm")) {
-				amPm = "am";
-			}
-		}
-
-		timeChangeCount = 1;
-
-		displayTime(0);
+	private void clockToInternalTime(int hoursAdded) {
+		internalTime.setToNow();
+		internalTime.hour += hoursAdded;
 	}
 
-	public void displayTime(int type) {
-		TextView clock;
-		TextView dayView;
+	public void internalToDisplayTime() {// modifies internal time to an
+											// appropriate version for display
+		int hour = internalTime.hour;
+		if (hour<24){
+			today = true;
+		}
+		if (hour >= 24) {
+			today = false;
+			hour -= 24;
+		}
+
+		if (hour > 12) {
+			am = false;
+			hour -= 12;
+		} else if (hour <= 12) {
+			am = true;
+		}
+		displayTime.hour = hour;
+		displayTime.minute = internalTime.minute;
+	}
+
+	public void inputClockSetup(Time input, int digit){//helps generate timedates for marking around clock [3 = 6 oclock pos, 9 = 9 o clock pos...]
+		int inputHour = input.hour;
+		Time outputTime = new Time();
+		boolean inputToday = true;
+		boolean inputAm = true;
+		if (inputHour<24){
+			inputToday = true;
+		}
+		if (inputHour >= 24) {
+			inputToday = false;
+			inputHour -= 24;
+		}
+
+		if (inputHour > 12) {
+			inputAm = false;
+			inputHour -= 12;
+		} else if (inputHour <= 12) {
+			inputAm = true;
+		}
+		outputTime.hour = inputHour;
+		outputTime.minute = input.minute;
+		String output;
+		output = String.valueOf(outputTime.hour);
+		
+		if(inputAm){
+			output += "am";
+		}
+		else{
+			output += "pm";
+		}
+		output+= "\n"+findDay(inputToday);
+		if (input.hour == 0 || input.hour == 24) {
+
+			output = "Midnight";
+		} else if (input.hour == 12 || input.hour == 36) {
+
+			output = "Noon";
+		}
+		Log.d(DEBUG_TAG, output);
+		if(digit == 3){
+			TextView left = (TextView)findViewById(R.id.left);
+			left.setText(output);
+		}
+		else if(digit == 2){
+			TextView bottom = (TextView)findViewById(R.id.bottom);
+			bottom.setText(output);
+		}
+		else if(digit == 1){
+			TextView right = (TextView)findViewById(R.id.right);
+			right.setText(output);
+		}
+		
+	}
+	
+	public int closestHourToNow(){
+		now.setToNow();
+		int closest = 0;
+		if(now.minute<30){
+			closest = now.hour;
+		}
+		else{
+			closest = now.hour+1;
+		}
+		if(closest == 25){
+			closest = 1;
+		}
+		return closest;
+	}
+	
+	public void showTime(int type) {
+		now.setToNow();
 		if (type == 0) {
 			clock = (TextView) findViewById(R.id.time);
 			dayView = (TextView) findViewById(R.id.day);
@@ -491,11 +627,37 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			clock = (TextView) findViewById(R.id.choosertime);
 			dayView = (TextView) findViewById(R.id.chooserdate);
 		}
-		Time now = new Time();
-		now.setToNow();
-		int today = now.weekDay;
+		
+		dayView.setText(findDay(today));
+		
+		String amPm;
+		if (am) {
+			amPm = "am";
+		} else {
+			amPm = "pm";
+		}
+
+		if (internalTime.hour == 0 || internalTime.hour == 24) {
+
+			clock.setText("Midnight");
+		} else if (internalTime.hour == 12 || internalTime.hour == 36) {
+
+			clock.setText("Noon");
+		}
+
+		else if (displayTime.minute < 10) {
+
+			clock.setText(displayTime.hour + ":0" + displayTime.minute + amPm);
+
+		} else {
+			clock.setText(displayTime.hour + ":" + displayTime.minute + amPm);
+		}
+	}
+
+	private String findDay(boolean inputToday) {
+		int dayToday = now.weekDay;
 		String day = "", tomorrowDay = "";
-		switch (today) {
+		switch (dayToday) {
 		case 0:
 			day = "Sunday";
 			tomorrowDay = "Monday";
@@ -525,47 +687,16 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			tomorrowDay = "Sunday";
 			break;
 		}
-		int truetime = timeChosen.hour;
-		if (timeChosen.hour > 12) {
-			timeChosen.hour -= 12;
-			amPm = "pm";
-		}
-		if (amPm.equals("pm")) {
-			truetime += 12;
-			if (truetime == 24) {
-				truetime = 0;
-			}
-		}
-
-		if (timeChosen.minute < 10) {
-			if (truetime < now.hour) {
-				day = tomorrowDay;
-			}
-			if (truetime == 12) {
-				clock.setText("Noon");
-			} else if (truetime == 0) {
-				clock.setText("Midnight");
-			} else {
-				clock.setText(timeChosen.hour + ":0" + timeChosen.minute + amPm);
-			}
+		if (inputToday) {
+			return day;
 		} else {
-			if (truetime < now.hour) {
-				day = tomorrowDay;
-			}
-			if (truetime == 12) {
-				clock.setText("Noon");
-			} else if (truetime == 0) {
-				clock.setText("Midnight");
-			} else {
-				clock.setText(timeChosen.hour + ":" + timeChosen.minute + amPm);
-			}
+			return tomorrowDay;
 		}
-		dayView.setText(day);
 	}
 
 	private int calculateClockAngle(int angle) {
 		int upperLimit = 15;
-		int hour = 6;
+		int hour = 12;
 		while (upperLimit < 365) {
 			if (angle < upperLimit) {
 
@@ -573,10 +704,10 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 			} else if (angle >= upperLimit) {
 
-				upperLimit += 30;
+				upperLimit += 15;
 				hour--;
 				if (hour == 0) {
-					hour = 12;
+					hour = 24;
 				}
 			}
 		}
@@ -598,34 +729,29 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			view.startAnimation(a1);
 			setContentView(R.layout.hours);
 
-			int x1 = (int) event.getX();
-			if (x1 < screenWidth / 2) {
-				amPm = "am";
-			} else if (x1 > screenWidth / 2) {
-				amPm = "pm";
-			}
+			setUpClock();
 			inHours = true;
 		}
 
-		@Override
-		public boolean onDoubleTap(MotionEvent event) {
-			// Toast.makeText(context, "double tap",Toast.LENGTH_SHORT).show();
-			if ((!inHours) && (amPmCount == 0)) {
-				// Change imageview on doubleTap
-
-				if (amPm.equals("am")) {
-					amPm = "pm";
-				} else if (amPm.equals("pm")) {
-					amPm = "am";
-				}
-
-				displayTime(0);
-				amPmCount = 1;
-				weatherAtTime(timeChosen.hour, amPm, 0);
-
-			}
-			return true;
-		}
+		// @Override
+		// public boolean onDoubleTap(MotionEvent event) {
+		// // Toast.makeText(context, "double tap",Toast.LENGTH_SHORT).show();
+		// if ((!inHours) && (amPmCount == 0)) {
+		// // Change imageview on doubleTap
+		//
+		// if (amPm.equals("am")) {
+		// amPm = "pm";
+		// } else if (amPm.equals("pm")) {
+		// amPm = "am";
+		// }
+		//
+		// displayTime(0);
+		// amPmCount = 1;
+		// weatherAtTime(displayTime.hour, amPm, 0);
+		//
+		// }
+		// return true;
+		// }
 
 	}
 
@@ -657,22 +783,20 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	}
 
-	public void weatherAtTime(int hour, String amPmChosen, int type) {
-		if (amPmChosen.equals("pm")) {
-			hour += 12;
-			if (hour == 24) {
-				hour = 0;
-			}
-		}
-		LinearLayout main = (LinearLayout) findViewById(R.id.main);
-		RelativeLayout menu = (RelativeLayout) findViewById(R.id.menu);
+	public void weatherAtTime(int type) {
+		main = (LinearLayout) findViewById(R.id.main);
+		menu = (RelativeLayout) findViewById(R.id.menu);
+
+		int lookupHour = internalTime.hour;
+		if (lookupHour >= 24)
+			lookupHour -= 24;
 		for (int i = 0; i < current.size(); i++) {
 
 			String[] temp = current.get(i);
 			int time = Integer.parseInt(temp[6]);
 
 			// Log.d(DEBUG_TAG, "Looping: " +time);
-			if (time == hour) {
+			if (time == lookupHour) {
 
 				int temperature = Integer.parseInt(temp[0]);
 				int wind = Integer.parseInt(temp[3]);
@@ -704,19 +828,19 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 						// hours.setBackgroundColor(0xFF33B5E5);
 					} else if (temperature > 50) {
 
-						
 						main.setBackgroundColor(0xFFFF9900);
 						signalColorChange = 2;
 						// hours.setBackgroundColor(0xFFFF9900);
 					}
 					return;
-				}
-				else if(type == 1){
+				} else if (type == 1) {
 					TextView temperatureView = (TextView) findViewById(R.id.temp_chooser);
-					temperatureView.setText(Integer.toString(temperature)+"F");
+					temperatureView
+							.setText(Integer.toString(temperature) + "F");
 					TextView precipChance = (TextView) findViewById(R.id.precip_chooser);
 					precipChance.setText(Integer.toString(precip) + "%");
 					
+
 				}
 			}
 
@@ -739,9 +863,14 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		conditionPicMatcher.put("Rain Showers", R.drawable.clim_cloudrain);
 		conditionPicMatcher
 				.put("Heavy Rain Showers", R.drawable.clim_cloudrain);
+		conditionPicMatcher
+		.put("Chance of Rain", R.drawable.clim_cloudrain);
 
+		conditionPicMatcher.put("Chance of Flurries", R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Flurries", R.drawable.clim_cloudsnow);
 		conditionPicMatcher.put("Light Snow", R.drawable.clim_cloudsnow);
 		conditionPicMatcher.put("Snow", R.drawable.clim_cloudsnowalt);
+		conditionPicMatcher.put("Chance of Snow", R.drawable.clim_cloudsnowalt);
 		conditionPicMatcher.put("Heavy Snow", R.drawable.clim_cloudsnowalt);
 		conditionPicMatcher
 				.put("Light Snow Showers", R.drawable.clim_cloudsnow);
@@ -790,6 +919,10 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				R.drawable.clim_cloudhailalt);
 		conditionPicMatcher.put("Light Small Hail Showers",
 				R.drawable.clim_cloudhail);
+		conditionPicMatcher.put("Chance of Sleet",
+				R.drawable.clim_cloudhailalt);
+		conditionPicMatcher.put("Sleet",
+				R.drawable.clim_cloudhailalt);
 		conditionPicMatcher.put("Small Hail Showers",
 				R.drawable.clim_cloudhailalt);
 		conditionPicMatcher.put("Heavy Small Hail Showers",
@@ -868,10 +1001,16 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		conditionPicMatcher.put("Shallow Fog", R.drawable.clim_cloudfogalt);
 		conditionPicMatcher.put("Partial Fog", R.drawable.clim_cloudfogalt);
 
+		conditionPicMatcher.put("Chance of Thunderstorms",
+				R.drawable.clim_cloudlightning);
+		conditionPicMatcher.put("Chance of a Thunderstorm",
+				R.drawable.clim_cloudlightning);
 		conditionPicMatcher.put("Light Thunderstorm",
 				R.drawable.clim_cloudlightning);
 		conditionPicMatcher
 				.put("Thunderstorms", R.drawable.clim_cloudlightning);
+		conditionPicMatcher
+		.put("Thunderstorm", R.drawable.clim_cloudlightning);
 		conditionPicMatcher.put("Heavy Thunderstorms",
 				R.drawable.clim_cloudlightning);
 		conditionPicMatcher.put("Light Thunderstorms and Rain",
@@ -912,13 +1051,18 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				R.drawable.clim_cloudsnow);
 		conditionPicMatcher.put("Light Freezing Rain",
 				R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Chance of Freezing Rain", R.drawable.clim_cloudsnow);
 		conditionPicMatcher.put("Freezing Rain", R.drawable.clim_cloudsnow);
 		conditionPicMatcher.put("Heavy Freezing Rain",
 				R.drawable.clim_cloudsnow);
 
 		conditionPicMatcher.put("Overcast", R.drawable.clim_cloud);
+		conditionPicMatcher.put("Cloudy", R.drawable.clim_cloud);
 		conditionPicMatcher.put("Partly Cloudy", R.drawable.clim_cloud);
 		conditionPicMatcher.put("Mostly Cloudy", R.drawable.clim_cloud);
+		conditionPicMatcher.put("Partly Sunny", R.drawable.clim_cloudsun);
+		conditionPicMatcher.put("Mostly Sunny", R.drawable.clim_cloudsun);
+		conditionPicMatcher.put("Sunny", R.drawable.clim_sun);
 		conditionPicMatcher.put("Scattered Clouds", R.drawable.clim_cloud);
 		conditionPicMatcher.put("Squals", R.drawable.clim_cloudwind);
 		conditionPicMatcher.put("Funnel Cloud", R.drawable.clim_cloud);
