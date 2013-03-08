@@ -58,6 +58,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	ArrayList<String[]> current = new ArrayList<String[]>();
 	ArrayList<String[]> future = new ArrayList<String[]>();
 	Map<String, Integer> conditionPicMatcher;
+	Map<String, Integer> forecastPicMatcher;
 
 	// for gps
 	int lng, lat;
@@ -271,11 +272,12 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		ArrayList<Temperature> temps= new ArrayList<Temperature>();
 		for(int i = 0; i <future.size();i++){
 			String[] item = future.get(i);
+
+			Log.d(DEBUG_TAG, "Looping: " +(item[7]));
+			Log.d(DEBUG_TAG, "Looping: " +forecastPicMatcher.get(item[7]));
 			Temperature temp = new Temperature(Integer.parseInt(item[0]), Integer.parseInt(item[1]), Integer.parseInt(item[3]),
 					Integer.parseInt(item[2]), Integer.parseInt(item[4]), Integer.parseInt(item[5]), item[7],
-					 item[8],conditionPicMatcher.get(item[7]));
-			Log.d(DEBUG_TAG, "Looping: " +(item[7]));
-			Log.d(DEBUG_TAG, "Looping: " +conditionPicMatcher.get(item[7]));
+					 item[8], forecastPicMatcher.get(item[7]));
 			temps.add(temp);
 		}
 		ListView days = (ListView)findViewById(R.id.days);
@@ -850,6 +852,44 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	// Maps stuff
 	public void setUpMap() {
 		conditionPicMatcher = new HashMap<String, Integer>();
+		forecastPicMatcher = new HashMap<String, Integer>();
+
+
+		forecastPicMatcher.put("Chance of Freezing Rain", R.drawable.small_cloudsnow);
+		forecastPicMatcher.put("Chance of Flurries", R.drawable.small_cloudsnow);
+		forecastPicMatcher
+		.put("Chance of Rain", R.drawable.small_cloudrain);
+		forecastPicMatcher.put("Chance of Sleet",
+				R.drawable.small_cloudhailalt);
+		forecastPicMatcher.put("Chance of Snow", R.drawable.small_cloudsnowalt);
+		forecastPicMatcher.put("Chance of Thunderstorms",
+				R.drawable.small_cloudlightning);
+		forecastPicMatcher.put("Chance of a Thunderstorm",
+				R.drawable.small_cloudlightning);
+		forecastPicMatcher.put("Cloudy", R.drawable.small_cloud);
+		forecastPicMatcher.put("Clear", R.drawable.small_sun);
+		forecastPicMatcher.put("Flurries", R.drawable.small_cloudsnow);
+		forecastPicMatcher.put("Fog", R.drawable.small_cloudfog);
+		forecastPicMatcher.put("Haze", R.drawable.small_cloudfog);
+		forecastPicMatcher.put("Partly Cloudy", R.drawable.small_cloud);
+		forecastPicMatcher.put("Mostly Cloudy", R.drawable.small_cloud);
+		forecastPicMatcher.put("Partly Sunny", R.drawable.small_cloudsun);
+		forecastPicMatcher.put("Mostly Sunny", R.drawable.small_cloudsun);
+		forecastPicMatcher.put("Freezing Rain", R.drawable.small_cloudsnow);
+		forecastPicMatcher.put("Rain", R.drawable.small_cloudrain);
+		forecastPicMatcher.put("Sleet",
+				R.drawable.small_cloudhailalt);
+		forecastPicMatcher.put("Snow", R.drawable.small_cloudsnowalt);
+		forecastPicMatcher.put("Overcast", R.drawable.small_cloud);
+		forecastPicMatcher.put("Sunny", R.drawable.small_sun);
+		forecastPicMatcher.put("Scattered Clouds", R.drawable.small_cloud);
+		forecastPicMatcher.put("Unknown", R.drawable.small_cloud);
+		forecastPicMatcher
+				.put("Thunderstorms", R.drawable.small_cloudlightning);
+		forecastPicMatcher
+		.put("Thunderstorm", R.drawable.small_cloudlightning);
+
+
 
 		conditionPicMatcher.put("Light Drizzle",
 				R.drawable.clim_clouddrizzlealt);
