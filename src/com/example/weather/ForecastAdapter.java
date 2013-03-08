@@ -41,12 +41,12 @@ public class ForecastAdapter extends ArrayAdapter<Temperature> {
 		final Temperature temp = getItem(position);
 		ImageView condition = (ImageView) convertView.findViewById(R.id.condition_pic);
 		condition.setBackgroundResource(temp.imageResourceID);
-		TextView title = (TextView) convertView.findViewById(R.id.day);
+		TextView title = (TextView) convertView.findViewById(R.id.day_forecast);
 		title.setText(temp.day);
 		TextView album = (TextView) convertView.findViewById(R.id.high_low);
-		album.setText(temp.tempFHigh + " / " + temp.tempFLow);
-		TextView artist = (TextView) convertView.findViewById(R.id.precip);
-		artist.setText(String.valueOf(temp.precip));
+		album.setText("High" + temp.tempFHigh + " / Low:" + temp.tempFLow);
+		TextView artist = (TextView) convertView.findViewById(R.id.precip_forecast);
+		artist.setText(String.valueOf(temp.precip + "%"));
 		
 		return convertView;
 	}

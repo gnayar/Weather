@@ -1,27 +1,18 @@
 package com.example.weather;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.provider.Settings;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MotionEventCompat;
@@ -29,13 +20,10 @@ import android.text.format.Time;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -113,6 +101,8 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		// Finding current time
 		now.setToNow();
+
+		Log.d(DEBUG_TAG, "onLongPress: " + now.hour);
 		internalTime.setToNow();
 		internalToDisplayTime();
 		showTime(0);
@@ -145,8 +135,8 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	
 	private void setUpLayoutVars() {
 		clockSwipeTransition = (TextView) findViewById(R.id.time_mod);
-		LinearLayout main = (LinearLayout) findViewById(R.id.main);
-		RelativeLayout menu = (RelativeLayout) findViewById(R.id.menu);
+		 main = (LinearLayout) findViewById(R.id.main);
+		 menu = (RelativeLayout) findViewById(R.id.menu);
 	}
 
 	private void setUpGPS() {
@@ -268,13 +258,12 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	}
 
 	public void setUpForecast() {
-		
 		ArrayList<Temperature> temps= new ArrayList<Temperature>();
 		for(int i = 0; i <future.size();i++){
 			String[] item = future.get(i);
 
-			Log.d(DEBUG_TAG, "Looping: " +(item[7]));
-			Log.d(DEBUG_TAG, "Looping: " +forecastPicMatcher.get(item[7]));
+			//Log.d(DEBUG_TAG, "Looping: " +(item[7]));
+			//Log.d(DEBUG_TAG, "Looping: " +forecastPicMatcher.get(item[7]));
 			Temperature temp = new Temperature(Integer.parseInt(item[0]), Integer.parseInt(item[1]), Integer.parseInt(item[3]),
 					Integer.parseInt(item[2]), Integer.parseInt(item[4]), Integer.parseInt(item[5]), item[7],
 					 item[8], forecastPicMatcher.get(item[7]));
@@ -786,9 +775,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	}
 
 	public void weatherAtTime(int type) {
-		main = (LinearLayout) findViewById(R.id.main);
-		menu = (RelativeLayout) findViewById(R.id.menu);
-
+		
 		int lookupHour = internalTime.hour;
 		if (lookupHour >= 24)
 			lookupHour -= 24;
@@ -799,7 +786,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 			// Log.d(DEBUG_TAG, "Looping: " +time);
 			if (time == lookupHour) {
-
+				 main = (LinearLayout) findViewById(R.id.main);
 				int temperature = Integer.parseInt(temp[0]);
 				int wind = Integer.parseInt(temp[3]);
 				int precip = Integer.parseInt(temp[2]);
@@ -813,6 +800,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					windSpeed.setText(Integer.toString(wind) + "mph");
 					TextView precipChance = (TextView) findViewById(R.id.precip);
 					precipChance.setText(Integer.toString(precip) + "%");
+					Log.d(DEBUG_TAG, "Precip: " +Integer.toString(precip));
 					TextView conditionView = (TextView) findViewById(R.id.condition);
 					conditionView.setText(condition);
 					ImageView weatherIcon = (ImageView) findViewById(R.id.weatherIcon);
@@ -823,8 +811,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 					}
 
-					TextView dayView = (TextView) findViewById(R.id.day);
-					if (temperature < 50) {
+					if (temperature <= 50) {
 						main.setBackgroundColor(0xFF33B5E5);
 						signalColorChange = 1;
 						// hours.setBackgroundColor(0xFF33B5E5);
@@ -836,6 +823,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					}
 					return;
 				} else if (type == 1) {
+					 menu = (RelativeLayout) findViewById(R.id.menu);
 					TextView temperatureView = (TextView) findViewById(R.id.temp_chooser);
 					temperatureView
 							.setText(Integer.toString(temperature) + "F");
