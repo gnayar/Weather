@@ -321,7 +321,20 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					&& touchdownY > screenHeight / 2) {
 				previousState = State.Q4;
 			}
+			
+			Log.d(DEBUG_TAG, "onLongPress: " + event.toString());
 
+			LinearLayout view = (LinearLayout) findViewById(R.id.main);
+			View hours = (View) findViewById(R.layout.hours);
+			Animation a1 = AnimationUtils.loadAnimation(context,
+					android.R.anim.fade_out);
+			a1.setDuration(200);
+			view.startAnimation(a1);
+			setContentView(R.layout.hours);
+
+			setUpClock();
+			inHours = true;
+			
 			return true;
 
 		case (MotionEvent.ACTION_MOVE):
@@ -342,94 +355,94 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			}
 
 			// Current State
-			if (x1 < screenWidth / 2 && y1 < screenHeight / 2) {
-				state = State.Q2;
-			} else if (x1 > screenWidth / 2 && y1 < screenHeight / 2) {
-				state = State.Q1;
-			} else if (x1 < screenWidth / 2 && y1 > screenHeight / 2) {
-				state = State.Q3;
-			} else if (x1 > screenWidth / 2 && y1 > screenHeight / 2) {
-				state = State.Q4;
-			}
-
-			// now we have two states to handle...one is the state we are coming
-			// from and the other is the state we currently
-			// moved to...
-			// now do the logic
-
-			if (previousState == State.Q2 && distance > 100 && !increasingY) {
-				if ((internalTime.hour > lowerLimit) && !inHours) {
-					Log.v("state", "Left pull down");
-					clockSwipeTransition.setText("AN HOUR EARLIER");
-					clockSwipeTransition.setTextColor(0x50CCCCFF);
-					if (distance > 200) {
-						clockSwipeTransition.setTextColor(0xFFFFFFFF);
-						if (timeChangeCount == 0) {
-							internalTime.hour -= 1;
-							internalToDisplayTime();
-							showTime(0);
-							weatherAtTime(0);
-							timeChangeCount = 1;
-						}
-					}
-				}
-
-			} else if (previousState == State.Q3 && distance > 100
-					&& increasingY && !inHours) {
-				;
-				Log.v("state", "Left pull up");
-				if ((internalTime.hour < upperLimit) && !inHours) {
-					clockSwipeTransition.setText("AN HOUR LATER");
-					clockSwipeTransition.setTextColor(0x50CCCCFF);
-					if (distance > 200) {
-						clockSwipeTransition.setTextColor(0xFFFFFFFF);
-						if (timeChangeCount == 0) {
-							internalTime.hour += 1;
-							internalToDisplayTime();
-							showTime(0);
-							weatherAtTime(0);
-							timeChangeCount = 1;
-						}
-					}
-				}
-			} else if (previousState == State.Q1 && distance > 100
-					&& !increasingY && !inHours) {
-				if ((internalTime.hour > lowerLimit) && !inHours) {
-					Log.v("state", "Right pull down");
-					clockSwipeTransition.setText("AN HOUR EARLIER");
-					clockSwipeTransition.setTextColor(0x50CCCCFF);
-					if (distance > 200) {
-						clockSwipeTransition.setTextColor(0xFFFFFFFF);
-						if (timeChangeCount == 0) {
-							internalTime.hour -= 1;
-							internalToDisplayTime();
-							showTime(0);
-							weatherAtTime(0);
-							timeChangeCount = 1;
-						}
-					}
-
-				}
-
-			} else if (previousState == State.Q4 && distance > 100
-					&& increasingY && !inHours) {
-
-				Log.v("state", "Right pull up");
-				if ((internalTime.hour < upperLimit) && !inHours) {
-					clockSwipeTransition.setText("AN HOUR LATER");
-					clockSwipeTransition.setTextColor(0x50CCCCFF);
-					if (distance > 200) {
-						clockSwipeTransition.setTextColor(0xFFFFFFFF);
-						if (timeChangeCount == 0) {
-							internalTime.hour += 1;
-							internalToDisplayTime();
-							showTime(0);
-							weatherAtTime(0);
-							timeChangeCount = 1;
-						}
-					}
-				}
-			}
+//			if (x1 < screenWidth / 2 && y1 < screenHeight / 2) {
+//				state = State.Q2;
+//			} else if (x1 > screenWidth / 2 && y1 < screenHeight / 2) {
+//				state = State.Q1;
+//			} else if (x1 < screenWidth / 2 && y1 > screenHeight / 2) {
+//				state = State.Q3;
+//			} else if (x1 > screenWidth / 2 && y1 > screenHeight / 2) {
+//				state = State.Q4;
+//			}
+//
+//			// now we have two states to handle...one is the state we are coming
+//			// from and the other is the state we currently
+//			// moved to...
+//			// now do the logic
+//
+//			if (previousState == State.Q2 && distance > 100 && !increasingY) {
+//				if ((internalTime.hour > lowerLimit) && !inHours) {
+//					Log.v("state", "Left pull down");
+//					clockSwipeTransition.setText("AN HOUR EARLIER");
+//					clockSwipeTransition.setTextColor(0x50CCCCFF);
+//					if (distance > 200) {
+//						clockSwipeTransition.setTextColor(0xFFFFFFFF);
+//						if (timeChangeCount == 0) {
+//							internalTime.hour -= 1;
+//							internalToDisplayTime();
+//							showTime(0);
+//							weatherAtTime(0);
+//							timeChangeCount = 1;
+//						}
+//					}
+//				}
+//
+//			} else if (previousState == State.Q3 && distance > 100
+//					&& increasingY && !inHours) {
+//				;
+//				Log.v("state", "Left pull up");
+//				if ((internalTime.hour < upperLimit) && !inHours) {
+//					clockSwipeTransition.setText("AN HOUR LATER");
+//					clockSwipeTransition.setTextColor(0x50CCCCFF);
+//					if (distance > 200) {
+//						clockSwipeTransition.setTextColor(0xFFFFFFFF);
+//						if (timeChangeCount == 0) {
+//							internalTime.hour += 1;
+//							internalToDisplayTime();
+//							showTime(0);
+//							weatherAtTime(0);
+//							timeChangeCount = 1;
+//						}
+//					}
+//				}
+//			} else if (previousState == State.Q1 && distance > 100
+//					&& !increasingY && !inHours) {
+//				if ((internalTime.hour > lowerLimit) && !inHours) {
+//					Log.v("state", "Right pull down");
+//					clockSwipeTransition.setText("AN HOUR EARLIER");
+//					clockSwipeTransition.setTextColor(0x50CCCCFF);
+//					if (distance > 200) {
+//						clockSwipeTransition.setTextColor(0xFFFFFFFF);
+//						if (timeChangeCount == 0) {
+//							internalTime.hour -= 1;
+//							internalToDisplayTime();
+//							showTime(0);
+//							weatherAtTime(0);
+//							timeChangeCount = 1;
+//						}
+//					}
+//
+//				}
+//
+//			} else if (previousState == State.Q4 && distance > 100
+//					&& increasingY && !inHours) {
+//
+//				Log.v("state", "Right pull up");
+//				if ((internalTime.hour < upperLimit) && !inHours) {
+//					clockSwipeTransition.setText("AN HOUR LATER");
+//					clockSwipeTransition.setTextColor(0x50CCCCFF);
+//					if (distance > 200) {
+//						clockSwipeTransition.setTextColor(0xFFFFFFFF);
+//						if (timeChangeCount == 0) {
+//							internalTime.hour += 1;
+//							internalToDisplayTime();
+//							showTime(0);
+//							weatherAtTime(0);
+//							timeChangeCount = 1;
+//						}
+//					}
+//				}
+//			}
 			if (inHours) {
 				int angle = (int) Math.toDegrees(Math.atan2(x1 - screenWidth
 						/ 2, y1 - screenHeight / 2));
@@ -463,12 +476,12 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				inHours = false;
 
 				setContentView(R.layout.activity_main);
-				LinearLayout view = (LinearLayout) findViewById(R.id.main);
+				view = (LinearLayout) findViewById(R.id.main);
 
-				Animation a1 = AnimationUtils.loadAnimation(context,
+				Animation a2 = AnimationUtils.loadAnimation(context,
 						android.R.anim.fade_in);
-				a1.setDuration(200);
-				view.startAnimation(a1);
+				a2.setDuration(200);
+				view.startAnimation(a2);
 
 				int angle = (int) Math.toDegrees(Math.atan2(x1 - screenWidth
 						/ 2, y1 - screenHeight / 2));
@@ -710,18 +723,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		@Override
 		public void onLongPress(MotionEvent event) {
-			Log.d(DEBUG_TAG, "onLongPress: " + event.toString());
-
-			LinearLayout view = (LinearLayout) findViewById(R.id.main);
-			View hours = (View) findViewById(R.layout.hours);
-			Animation a1 = AnimationUtils.loadAnimation(context,
-					android.R.anim.fade_out);
-			a1.setDuration(200);
-			view.startAnimation(a1);
-			setContentView(R.layout.hours);
-
-			setUpClock();
-			inHours = true;
+			
 		}
 
 		// @Override
