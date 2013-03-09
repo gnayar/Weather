@@ -214,42 +214,69 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	}
 
-	private void setUpDataBase() {
-		// testing forecast json obj
-
-		// String[] test = future.get(4);
-		// for(int i = 0; i < 10; i++) {
-		// Log.v("http", test[i]);
-		// }
-
-		/*
-		 * OKAY GAUTAM READ
-		 * 
-		 * Currently, the data is being held in an arraylist and I am only
-		 * parsing some data. Just let me know if you need more. Its currently
-		 * stored based on indices -> I know this is retarded I will use a hash
-		 * or key value pair soon
-		 */
-
-		// TESTING DATABASE
-		CommentsDataSource datasource = new CommentsDataSource(this);
-		datasource.open();
-
-		Log.v("db", "Inserting...");
-
-		datasource.createComment("TEST");
-		datasource.createComment("TEST1");
-		datasource.createComment("TEST2");
-		Log.v("db", "Reading...");
-		List<Comment> comments = datasource.getAllComments();
-
-		Log.v("db", "Printing...");
-		Log.v("db", comments.size() + "");
-		for (int i = 0; i < comments.size(); i++) {
-			String log = "Name: " + comments.get(i).toString();
-			Log.v("db", log);
+	 private void setUpDataBase() {
+			// testing forecast json obj
+	 
+			// String[] test = future.get(4);
+			// for(int i = 0; i < 10; i++) {
+			// Log.v("http", test[i]);
+			// }
+	 
+			/*
+			 * OKAY GAUTAM READ
+			 * 
+			 * Currently, the data is being held in an arraylist and I am only
+			 * parsing some data. Just let me know if you need more. Its currently
+			 * stored based on indices -> I know this is retarded I will use a hash
+			 * or key value pair soon
+			 */
+	 
+			// TESTING DATABASE
+			CommentsDataSource datasource = new CommentsDataSource(this);
+			datasource.open();
+			
+			Log.v("db", "Inserting...");
+	 
+			String[] test0 = new String[7];
+			test0[0] = "100";
+			test0[1] = "101";
+			test0[2] = "102";
+			test0[3] = "103";
+			test0[4] = "104";
+			test0[5] = "105";
+			test0[6] = "106";
+	 
+			
+			 
+					 
+			//String[7] test1 = { "200", "201", "202", "203", "204", "205", "206"};
+	 
+			
+			datasource.addWeather(test0);
+			Log.v("db", "Found weather data");
+			//datasource.createComment("TEST");
+			//datasource.createComment("TEST1");
+			//datasource.createComment("TEST2");
+			Log.v("db", "Reading...");
+			List<String[]> test = datasource.getAllWeather();
+	 
+			Log.v("db", "Printing...");
+			Log.v("db", test.size() + "");
+			for (int i = 0; i < test.size(); i++) {
+				Log.v("db", "TEMPF: " + test.get(i)[0]);
+				Log.v("db", "TEMPC1: " + test.get(i)[1]);
+				Log.v("db", "TEMPC2: " + test.get(i)[2]);
+				Log.v("db", "TEMPC3: " + test.get(i)[3]);
+				Log.v("db", "TEMPC4: " + test.get(i)[4]);
+				Log.v("db", "TEMPC5: " + test.get(i)[5]);
+				Log.v("db", "TEMPC6: " + test.get(i)[6]);
+				Log.v("db", "TEMPC7: " + test.get(i)[7]);
+	 
+	 
+				
+	 
+			}
 		}
-	}
 
 	private void fetchData() {
 		JSONParser parser = new JSONParser();

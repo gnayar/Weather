@@ -10,7 +10,7 @@ import android.view.View;
 
 public class CircleDraw extends View{
 	float radius;
-	int finishdegree=80;
+	int finishdegree=0;
 	int startdegree = 0;
 	int color = 0xFFFFFF;
 	int paintWidth = 20;
