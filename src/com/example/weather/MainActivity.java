@@ -8,6 +8,8 @@ import java.util.Map;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.GradientDrawable.Orientation;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -41,7 +43,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	private GestureDetectorCompat mDetector;
 	Context context;
 	int screenHeight, screenWidth;
-	private CanvasTransformer mTransformer;
+	int colorSet;
 
 	ArrayList<String[]> current = new ArrayList<String[]>();
 	ArrayList<String[]> future = new ArrayList<String[]>();
@@ -82,6 +84,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	TextView dayView;// says what time it is, exists in two layouts
 	LinearLayout main;// root layout of main screen
 	RelativeLayout menu;// root layout of clock screen
+	CircleDraw clockDrawn;// overlay for clock to follow finger
 
 	// Called when the activity is first created.
 	@Override
@@ -98,7 +101,6 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		setUpMap();
 
-
 		// Finding current time
 		now.setToNow();
 
@@ -112,31 +114,53 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		fetchData();
 
 		setUpForecast();
-		
+
 		setUpDataBase();
 
 		setUpGPS();
 
 	}
 
-	public void setUpClock(){
+	public void setUpClock() {
+		GradientDrawable g = new GradientDrawable(Orientation.TL_BR, new int[] {
+				0xFF818181, 0xFF818181 });
+		g.setGradientType(GradientDrawable.RADIAL_GRADIENT);
+		g.setGradientRadius(2200.0f);
+		g.setGradientCenter(0.5f, 0.5f);
+		TextView colorBox = (TextView) findViewById(R.id.color_box);
+		try {
+			colorBox.setBackgroundDrawable(g);
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+		}
+		// set up background groove on hour
+		RelativeLayout clockHolder = (RelativeLayout) findViewById(R.id.draw_image_here);
+		// CircleDraw groove = new CircleDraw(context, 300.0f , 0,
+		// 360,0xFF616161);
+		// clockHolder.addView(groove);
+		// clockHolder.bringChildToFront(groove);
+
+		clockDrawn = new CircleDraw(context, 300.0f, -90, -90, colorSet);
+		clockHolder.addView(clockDrawn);
+		clockHolder.bringChildToFront(clockDrawn);
+
 		now.setToNow();
 		Time inputTime = now;
-		inputTime.hour+=6;
-		inputClockSetup(inputTime,1);
+		inputTime.hour += 6;
+		inputClockSetup(inputTime, 1);
 
-		inputTime.hour+=6;
-		inputClockSetup(inputTime,2);
+		inputTime.hour += 6;
+		inputClockSetup(inputTime, 2);
 
-		inputTime.hour+=6;
-		inputClockSetup(inputTime,3);
-		
+		inputTime.hour += 6;
+		inputClockSetup(inputTime, 3);
+
 	}
-	
+
 	private void setUpLayoutVars() {
 		clockSwipeTransition = (TextView) findViewById(R.id.time_mod);
-		 main = (LinearLayout) findViewById(R.id.main);
-		 menu = (RelativeLayout) findViewById(R.id.menu);
+		main = (LinearLayout) findViewById(R.id.main);
+		menu = (RelativeLayout) findViewById(R.id.menu);
 	}
 
 	private void setUpGPS() {
@@ -244,7 +268,6 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			e.printStackTrace();
 		}
 
-		
 	}
 
 	private void setUpMotion() {
@@ -258,23 +281,27 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	}
 
 	public void setUpForecast() {
-		ArrayList<Temperature> temps= new ArrayList<Temperature>();
-		for(int i = 0; i <future.size();i++){
+		ArrayList<Temperature> temps = new ArrayList<Temperature>();
+		for (int i = 0; i < future.size(); i++) {
 			String[] item = future.get(i);
 
-			//Log.d(DEBUG_TAG, "Looping: " +(item[7]));
-			//Log.d(DEBUG_TAG, "Looping: " +forecastPicMatcher.get(item[7]));
-			Temperature temp = new Temperature(Integer.parseInt(item[0]), Integer.parseInt(item[1]), Integer.parseInt(item[3]),
-					Integer.parseInt(item[2]), Integer.parseInt(item[4]), Integer.parseInt(item[5]), item[7],
-					 item[8], forecastPicMatcher.get(item[7]));
+			// Log.d(DEBUG_TAG, "Looping: " +(item[7]));
+			// Log.d(DEBUG_TAG, "Looping: " +forecastPicMatcher.get(item[7]));
+			Temperature temp = new Temperature(Integer.parseInt(item[0]),
+					Integer.parseInt(item[1]), Integer.parseInt(item[3]),
+					Integer.parseInt(item[2]), Integer.parseInt(item[4]),
+					Integer.parseInt(item[5]), item[7], item[8],
+					forecastPicMatcher.get(item[7]));
 			temps.add(temp);
 		}
-		ListView days = (ListView)findViewById(R.id.days);
-		days.setCacheColorHint(Color.TRANSPARENT); // not sure if this is required for you. 
+		ListView days = (ListView) findViewById(R.id.days);
+		days.setCacheColorHint(Color.TRANSPARENT); // not sure if this is
+													// required for you.
 		days.setFastScrollEnabled(true);
 		days.setScrollingCacheEnabled(true);
-		ForecastAdapter adapter = new ForecastAdapter(this, R.layout.forecast_row_item, temps);
-	    days.setAdapter(adapter);	
+		ForecastAdapter adapter = new ForecastAdapter(this,
+				R.layout.forecast_row_item, temps);
+		days.setAdapter(adapter);
 
 	}
 
@@ -321,7 +348,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					&& touchdownY > screenHeight / 2) {
 				previousState = State.Q4;
 			}
-			
+
 			Log.d(DEBUG_TAG, "onLongPress: " + event.toString());
 
 			LinearLayout view = (LinearLayout) findViewById(R.id.main);
@@ -334,7 +361,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 			setUpClock();
 			inHours = true;
-			
+
 			return true;
 
 		case (MotionEvent.ACTION_MOVE):
@@ -355,100 +382,104 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			}
 
 			// Current State
-//			if (x1 < screenWidth / 2 && y1 < screenHeight / 2) {
-//				state = State.Q2;
-//			} else if (x1 > screenWidth / 2 && y1 < screenHeight / 2) {
-//				state = State.Q1;
-//			} else if (x1 < screenWidth / 2 && y1 > screenHeight / 2) {
-//				state = State.Q3;
-//			} else if (x1 > screenWidth / 2 && y1 > screenHeight / 2) {
-//				state = State.Q4;
-//			}
-//
-//			// now we have two states to handle...one is the state we are coming
-//			// from and the other is the state we currently
-//			// moved to...
-//			// now do the logic
-//
-//			if (previousState == State.Q2 && distance > 100 && !increasingY) {
-//				if ((internalTime.hour > lowerLimit) && !inHours) {
-//					Log.v("state", "Left pull down");
-//					clockSwipeTransition.setText("AN HOUR EARLIER");
-//					clockSwipeTransition.setTextColor(0x50CCCCFF);
-//					if (distance > 200) {
-//						clockSwipeTransition.setTextColor(0xFFFFFFFF);
-//						if (timeChangeCount == 0) {
-//							internalTime.hour -= 1;
-//							internalToDisplayTime();
-//							showTime(0);
-//							weatherAtTime(0);
-//							timeChangeCount = 1;
-//						}
-//					}
-//				}
-//
-//			} else if (previousState == State.Q3 && distance > 100
-//					&& increasingY && !inHours) {
-//				;
-//				Log.v("state", "Left pull up");
-//				if ((internalTime.hour < upperLimit) && !inHours) {
-//					clockSwipeTransition.setText("AN HOUR LATER");
-//					clockSwipeTransition.setTextColor(0x50CCCCFF);
-//					if (distance > 200) {
-//						clockSwipeTransition.setTextColor(0xFFFFFFFF);
-//						if (timeChangeCount == 0) {
-//							internalTime.hour += 1;
-//							internalToDisplayTime();
-//							showTime(0);
-//							weatherAtTime(0);
-//							timeChangeCount = 1;
-//						}
-//					}
-//				}
-//			} else if (previousState == State.Q1 && distance > 100
-//					&& !increasingY && !inHours) {
-//				if ((internalTime.hour > lowerLimit) && !inHours) {
-//					Log.v("state", "Right pull down");
-//					clockSwipeTransition.setText("AN HOUR EARLIER");
-//					clockSwipeTransition.setTextColor(0x50CCCCFF);
-//					if (distance > 200) {
-//						clockSwipeTransition.setTextColor(0xFFFFFFFF);
-//						if (timeChangeCount == 0) {
-//							internalTime.hour -= 1;
-//							internalToDisplayTime();
-//							showTime(0);
-//							weatherAtTime(0);
-//							timeChangeCount = 1;
-//						}
-//					}
-//
-//				}
-//
-//			} else if (previousState == State.Q4 && distance > 100
-//					&& increasingY && !inHours) {
-//
-//				Log.v("state", "Right pull up");
-//				if ((internalTime.hour < upperLimit) && !inHours) {
-//					clockSwipeTransition.setText("AN HOUR LATER");
-//					clockSwipeTransition.setTextColor(0x50CCCCFF);
-//					if (distance > 200) {
-//						clockSwipeTransition.setTextColor(0xFFFFFFFF);
-//						if (timeChangeCount == 0) {
-//							internalTime.hour += 1;
-//							internalToDisplayTime();
-//							showTime(0);
-//							weatherAtTime(0);
-//							timeChangeCount = 1;
-//						}
-//					}
-//				}
-//			}
+			// if (x1 < screenWidth / 2 && y1 < screenHeight / 2) {
+			// state = State.Q2;
+			// } else if (x1 > screenWidth / 2 && y1 < screenHeight / 2) {
+			// state = State.Q1;
+			// } else if (x1 < screenWidth / 2 && y1 > screenHeight / 2) {
+			// state = State.Q3;
+			// } else if (x1 > screenWidth / 2 && y1 > screenHeight / 2) {
+			// state = State.Q4;
+			// }
+			//
+			// // now we have two states to handle...one is the state we are
+			// coming
+			// // from and the other is the state we currently
+			// // moved to...
+			// // now do the logic
+			//
+			// if (previousState == State.Q2 && distance > 100 && !increasingY)
+			// {
+			// if ((internalTime.hour > lowerLimit) && !inHours) {
+			// Log.v("state", "Left pull down");
+			// clockSwipeTransition.setText("AN HOUR EARLIER");
+			// clockSwipeTransition.setTextColor(0x50CCCCFF);
+			// if (distance > 200) {
+			// clockSwipeTransition.setTextColor(0xFFFFFFFF);
+			// if (timeChangeCount == 0) {
+			// internalTime.hour -= 1;
+			// internalToDisplayTime();
+			// showTime(0);
+			// weatherAtTime(0);
+			// timeChangeCount = 1;
+			// }
+			// }
+			// }
+			//
+			// } else if (previousState == State.Q3 && distance > 100
+			// && increasingY && !inHours) {
+			// ;
+			// Log.v("state", "Left pull up");
+			// if ((internalTime.hour < upperLimit) && !inHours) {
+			// clockSwipeTransition.setText("AN HOUR LATER");
+			// clockSwipeTransition.setTextColor(0x50CCCCFF);
+			// if (distance > 200) {
+			// clockSwipeTransition.setTextColor(0xFFFFFFFF);
+			// if (timeChangeCount == 0) {
+			// internalTime.hour += 1;
+			// internalToDisplayTime();
+			// showTime(0);
+			// weatherAtTime(0);
+			// timeChangeCount = 1;
+			// }
+			// }
+			// }
+			// } else if (previousState == State.Q1 && distance > 100
+			// && !increasingY && !inHours) {
+			// if ((internalTime.hour > lowerLimit) && !inHours) {
+			// Log.v("state", "Right pull down");
+			// clockSwipeTransition.setText("AN HOUR EARLIER");
+			// clockSwipeTransition.setTextColor(0x50CCCCFF);
+			// if (distance > 200) {
+			// clockSwipeTransition.setTextColor(0xFFFFFFFF);
+			// if (timeChangeCount == 0) {
+			// internalTime.hour -= 1;
+			// internalToDisplayTime();
+			// showTime(0);
+			// weatherAtTime(0);
+			// timeChangeCount = 1;
+			// }
+			// }
+			//
+			// }
+			//
+			// } else if (previousState == State.Q4 && distance > 100
+			// && increasingY && !inHours) {
+			//
+			// Log.v("state", "Right pull up");
+			// if ((internalTime.hour < upperLimit) && !inHours) {
+			// clockSwipeTransition.setText("AN HOUR LATER");
+			// clockSwipeTransition.setTextColor(0x50CCCCFF);
+			// if (distance > 200) {
+			// clockSwipeTransition.setTextColor(0xFFFFFFFF);
+			// if (timeChangeCount == 0) {
+			// internalTime.hour += 1;
+			// internalToDisplayTime();
+			// showTime(0);
+			// weatherAtTime(0);
+			// timeChangeCount = 1;
+			// }
+			// }
+			// }
+			// }
 			if (inHours) {
 				int angle = (int) Math.toDegrees(Math.atan2(x1 - screenWidth
 						/ 2, y1 - screenHeight / 2));
 				if (angle < 0) {
 					angle += 360;
 				}
+
+				moveHourOverlay(angle);
 				double dX = Math.pow((x1 - screenWidth / 2), 2);
 				double dY = Math.pow((y1 - screenHeight / 2), 2);
 
@@ -463,7 +494,6 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					internalTime.setToNow();
 
 				}
-
 				internalToDisplayTime();
 				showTime(1);
 				weatherAtTime(1);
@@ -527,6 +557,14 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	}
 
+	private void moveHourOverlay(int angle) {
+		int angleDrawn = angle;
+		Log.d(DEBUG_TAG, String.valueOf(angle));
+		clockDrawn.finishdegree = angleDrawn;
+		clockDrawn.invalidate();
+
+	}
+
 	private void clockToInternalTime(int hoursAdded) {
 		internalTime.setToNow();
 		internalTime.hour += hoursAdded;
@@ -535,7 +573,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	public void internalToDisplayTime() {// modifies internal time to an
 											// appropriate version for display
 		int hour = internalTime.hour;
-		if (hour<24){
+		if (hour < 24) {
 			today = true;
 		}
 		if (hour >= 24) {
@@ -553,12 +591,16 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		displayTime.minute = internalTime.minute;
 	}
 
-	public void inputClockSetup(Time input, int digit){//helps generate timedates for marking around clock [3 = 6 oclock pos, 9 = 9 o clock pos...]
+	public void inputClockSetup(Time input, int digit) {// helps generate
+														// timedates for marking
+														// around clock [3 = 6
+														// oclock pos, 9 = 9 o
+														// clock pos...]
 		int inputHour = input.hour;
 		Time outputTime = new Time();
 		boolean inputToday = true;
 		boolean inputAm = true;
-		if (inputHour<24){
+		if (inputHour < 24) {
 			inputToday = true;
 		}
 		if (inputHour >= 24) {
@@ -576,14 +618,13 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		outputTime.minute = input.minute;
 		String output;
 		output = String.valueOf(outputTime.hour);
-		
-		if(inputAm){
+
+		if (inputAm) {
 			output += "am";
-		}
-		else{
+		} else {
 			output += "pm";
 		}
-		output+= "\n"+findDay(inputToday);
+		// output+= "\n"+findDay(inputToday);
 		if (input.hour == 0 || input.hour == 24) {
 
 			output = "Midnight";
@@ -592,36 +633,33 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			output = "Noon";
 		}
 		Log.d(DEBUG_TAG, output);
-		if(digit == 3){
-			TextView left = (TextView)findViewById(R.id.left);
+		if (digit == 3) {
+			TextView left = (TextView) findViewById(R.id.left);
 			left.setText(output);
-		}
-		else if(digit == 2){
-			TextView bottom = (TextView)findViewById(R.id.bottom);
+		} else if (digit == 2) {
+			TextView bottom = (TextView) findViewById(R.id.bottom);
 			bottom.setText(output);
-		}
-		else if(digit == 1){
-			TextView right = (TextView)findViewById(R.id.right);
+		} else if (digit == 1) {
+			TextView right = (TextView) findViewById(R.id.right);
 			right.setText(output);
 		}
-		
+
 	}
-	
-	public int closestHourToNow(){
+
+	public int closestHourToNow() {
 		now.setToNow();
 		int closest = 0;
-		if(now.minute<30){
+		if (now.minute < 30) {
 			closest = now.hour;
+		} else {
+			closest = now.hour + 1;
 		}
-		else{
-			closest = now.hour+1;
-		}
-		if(closest == 25){
+		if (closest == 25) {
 			closest = 1;
 		}
 		return closest;
 	}
-	
+
 	public void showTime(int type) {
 		now.setToNow();
 		if (type == 0) {
@@ -631,9 +669,9 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			clock = (TextView) findViewById(R.id.choosertime);
 			dayView = (TextView) findViewById(R.id.chooserdate);
 		}
-		
+
 		dayView.setText(findDay(today));
-		
+
 		String amPm;
 		if (am) {
 			amPm = "am";
@@ -723,7 +761,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		@Override
 		public void onLongPress(MotionEvent event) {
-			
+
 		}
 
 		// @Override
@@ -777,7 +815,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	}
 
 	public void weatherAtTime(int type) {
-		
+
 		int lookupHour = internalTime.hour;
 		if (lookupHour >= 24)
 			lookupHour -= 24;
@@ -788,7 +826,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 			// Log.d(DEBUG_TAG, "Looping: " +time);
 			if (time == lookupHour) {
-				 main = (LinearLayout) findViewById(R.id.main);
+				main = (LinearLayout) findViewById(R.id.main);
 				int temperature = Integer.parseInt(temp[0]);
 				int wind = Integer.parseInt(temp[3]);
 				int precip = Integer.parseInt(temp[2]);
@@ -802,7 +840,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					windSpeed.setText(Integer.toString(wind) + "mph");
 					TextView precipChance = (TextView) findViewById(R.id.precip);
 					precipChance.setText(Integer.toString(precip) + "%");
-					Log.d(DEBUG_TAG, "Precip: " +Integer.toString(precip));
+					Log.d(DEBUG_TAG, "Precip: " + Integer.toString(precip));
 					TextView conditionView = (TextView) findViewById(R.id.condition);
 					conditionView.setText(condition);
 					ImageView weatherIcon = (ImageView) findViewById(R.id.weatherIcon);
@@ -814,24 +852,26 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					}
 
 					if (temperature <= 50) {
-						main.setBackgroundColor(0xFF33B5E5);
+						colorSet = craftColors(60, temperature, true);
+						main.setBackgroundColor(colorSet);
 						signalColorChange = 1;
 						// hours.setBackgroundColor(0xFF33B5E5);
 					} else if (temperature > 50) {
-
-						main.setBackgroundColor(0xFFFF9900);
+						colorSet = craftColors(60, temperature, true);
+						main.setBackgroundColor(colorSet);
 						signalColorChange = 2;
 						// hours.setBackgroundColor(0xFFFF9900);
 					}
 					return;
 				} else if (type == 1) {
-					 menu = (RelativeLayout) findViewById(R.id.menu);
+					menu = (RelativeLayout) findViewById(R.id.menu);
 					TextView temperatureView = (TextView) findViewById(R.id.temp_chooser);
 					temperatureView
 							.setText(Integer.toString(temperature) + "F");
 					TextView precipChance = (TextView) findViewById(R.id.precip_chooser);
 					precipChance.setText(Integer.toString(precip) + "%");
-					
+					clockDrawn.color = craftColors(60, temperature, true);
+					clockDrawn.invalidate();
 
 				}
 			}
@@ -839,18 +879,83 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		}
 	}
 
+	public int craftColors(int thresholdTemp, int currentTemp,
+			boolean fahrenheitFlag) {
+		// where threshold is the user set temperature as to being cold
+		// where current is the current temperature
+		// where fahrenheitflag -> true if in fahrenheit and is false needs to
+		// be in fahrenheit
+		int current = currentTemp;
+		int threshold = thresholdTemp;
+
+		if (fahrenheitFlag) {
+			Log.v("temp", "As fahrenheit: " + current);
+			current = (int) ((current - 32) / 1.8f);
+			Log.v("temp", "As celsius: " + current);
+
+			threshold = (int) ((threshold - 32) / 1.8f);
+			Log.v("temp", "Threshold as celsius: " + threshold);
+			// convert celsius to fahrenheit
+		}
+
+		if (current >= threshold) {
+			// here we are greater than the threshold so will be a red color
+			int increment = 255 / (40 - threshold);
+			int red = 255;
+			int blue = 0;
+
+			int green = 255 - (current * increment);
+
+			String RED = Integer.toHexString(red);
+			String GREEN = Integer.toHexString(green);
+			String BLUE = Integer.toHexString(blue);
+
+			StringBuilder builder = new StringBuilder();
+			builder.append("#");
+			builder.append(RED);
+			builder.append(GREEN);
+			builder.append(BLUE);
+			builder.append("0");
+
+			int color = Color.parseColor(builder.toString());
+
+			return color;
+
+		} else if (current < threshold) {
+			int increment = (255 / (threshold + 10));
+			Log.v("temp", "Increment: " + increment);
+			StringBuilder builder = new StringBuilder();
+
+			// r,g are always 0 and blue is just changing
+			// start at 0 and will gain to 255
+
+			int blue = 255 - (current * increment);
+			Log.v("temp", "Blue is: " + blue);
+
+			builder.append("#0000");
+			builder.append(Integer.toHexString(blue));
+			Log.v("temp", "builder string: " + builder.toString());
+			int color = Color.parseColor(builder.toString());
+			return color;
+
+		} else {
+			return 0;
+		}
+
+	}
+
 	// Maps stuff
 	public void setUpMap() {
 		conditionPicMatcher = new HashMap<String, Integer>();
 		forecastPicMatcher = new HashMap<String, Integer>();
 
-
-		forecastPicMatcher.put("Chance of Freezing Rain", R.drawable.small_cloudsnow);
-		forecastPicMatcher.put("Chance of Flurries", R.drawable.small_cloudsnow);
+		forecastPicMatcher.put("Chance of Freezing Rain",
+				R.drawable.small_cloudsnow);
 		forecastPicMatcher
-		.put("Chance of Rain", R.drawable.small_cloudrain);
-		forecastPicMatcher.put("Chance of Sleet",
-				R.drawable.small_cloudhailalt);
+				.put("Chance of Flurries", R.drawable.small_cloudsnow);
+		forecastPicMatcher.put("Chance of Rain", R.drawable.small_cloudrain);
+		forecastPicMatcher
+				.put("Chance of Sleet", R.drawable.small_cloudhailalt);
 		forecastPicMatcher.put("Chance of Snow", R.drawable.small_cloudsnowalt);
 		forecastPicMatcher.put("Chance of Thunderstorms",
 				R.drawable.small_cloudlightning);
@@ -867,8 +972,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		forecastPicMatcher.put("Mostly Sunny", R.drawable.small_cloudsun);
 		forecastPicMatcher.put("Freezing Rain", R.drawable.small_cloudsnow);
 		forecastPicMatcher.put("Rain", R.drawable.small_cloudrain);
-		forecastPicMatcher.put("Sleet",
-				R.drawable.small_cloudhailalt);
+		forecastPicMatcher.put("Sleet", R.drawable.small_cloudhailalt);
 		forecastPicMatcher.put("Snow", R.drawable.small_cloudsnowalt);
 		forecastPicMatcher.put("Overcast", R.drawable.small_cloud);
 		forecastPicMatcher.put("Sunny", R.drawable.small_sun);
@@ -876,10 +980,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		forecastPicMatcher.put("Unknown", R.drawable.small_cloud);
 		forecastPicMatcher
 				.put("Thunderstorms", R.drawable.small_cloudlightning);
-		forecastPicMatcher
-		.put("Thunderstorm", R.drawable.small_cloudlightning);
-
-
+		forecastPicMatcher.put("Thunderstorm", R.drawable.small_cloudlightning);
 
 		conditionPicMatcher.put("Light Drizzle",
 				R.drawable.clim_clouddrizzlealt);
@@ -893,10 +994,10 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		conditionPicMatcher.put("Rain Showers", R.drawable.clim_cloudrain);
 		conditionPicMatcher
 				.put("Heavy Rain Showers", R.drawable.clim_cloudrain);
-		conditionPicMatcher
-		.put("Chance of Rain", R.drawable.clim_cloudrain);
+		conditionPicMatcher.put("Chance of Rain", R.drawable.clim_cloudrain);
 
-		conditionPicMatcher.put("Chance of Flurries", R.drawable.clim_cloudsnow);
+		conditionPicMatcher
+				.put("Chance of Flurries", R.drawable.clim_cloudsnow);
 		conditionPicMatcher.put("Flurries", R.drawable.clim_cloudsnow);
 		conditionPicMatcher.put("Light Snow", R.drawable.clim_cloudsnow);
 		conditionPicMatcher.put("Snow", R.drawable.clim_cloudsnowalt);
@@ -949,10 +1050,9 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				R.drawable.clim_cloudhailalt);
 		conditionPicMatcher.put("Light Small Hail Showers",
 				R.drawable.clim_cloudhail);
-		conditionPicMatcher.put("Chance of Sleet",
-				R.drawable.clim_cloudhailalt);
-		conditionPicMatcher.put("Sleet",
-				R.drawable.clim_cloudhailalt);
+		conditionPicMatcher
+				.put("Chance of Sleet", R.drawable.clim_cloudhailalt);
+		conditionPicMatcher.put("Sleet", R.drawable.clim_cloudhailalt);
 		conditionPicMatcher.put("Small Hail Showers",
 				R.drawable.clim_cloudhailalt);
 		conditionPicMatcher.put("Heavy Small Hail Showers",
@@ -1039,8 +1139,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				R.drawable.clim_cloudlightning);
 		conditionPicMatcher
 				.put("Thunderstorms", R.drawable.clim_cloudlightning);
-		conditionPicMatcher
-		.put("Thunderstorm", R.drawable.clim_cloudlightning);
+		conditionPicMatcher.put("Thunderstorm", R.drawable.clim_cloudlightning);
 		conditionPicMatcher.put("Heavy Thunderstorms",
 				R.drawable.clim_cloudlightning);
 		conditionPicMatcher.put("Light Thunderstorms and Rain",
@@ -1081,7 +1180,8 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				R.drawable.clim_cloudsnow);
 		conditionPicMatcher.put("Light Freezing Rain",
 				R.drawable.clim_cloudsnow);
-		conditionPicMatcher.put("Chance of Freezing Rain", R.drawable.clim_cloudsnow);
+		conditionPicMatcher.put("Chance of Freezing Rain",
+				R.drawable.clim_cloudsnow);
 		conditionPicMatcher.put("Freezing Rain", R.drawable.clim_cloudsnow);
 		conditionPicMatcher.put("Heavy Freezing Rain",
 				R.drawable.clim_cloudsnow);
