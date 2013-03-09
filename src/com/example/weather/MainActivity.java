@@ -950,9 +950,12 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			builder.append(GREEN);
 			builder.append(BLUE);
 			builder.append("0");
-
-			int color = Color.parseColor(builder.toString());
-
+			int color;
+			try{
+				color = Color.parseColor(builder.toString());
+			}catch(IllegalArgumentException e){
+				color = (0xFF33B5E5);
+			}
 			return color;
 
 		} else if (current < threshold) {
