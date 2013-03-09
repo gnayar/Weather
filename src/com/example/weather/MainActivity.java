@@ -558,8 +558,8 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	}
 
 	private void moveHourOverlay(int angle) {
-		int angleDrawn = angle;
-		Log.d(DEBUG_TAG, String.valueOf(angle));
+		int angleDrawn = (540-angle)%360;
+		Log.d(DEBUG_TAG, String.valueOf(angleDrawn));
 		clockDrawn.finishdegree = angleDrawn;
 		clockDrawn.invalidate();
 

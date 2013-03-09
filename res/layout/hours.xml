@@ -102,7 +102,7 @@
                 android:text=""
                 android:textAllCaps="true"
                 android:textColor="#FFFFFF"
-                android:textSize="10sp" />
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/precip_chooser"
@@ -113,7 +113,7 @@
                 android:text=""
                 android:textAllCaps="true"
                 android:textColor="#FFFFFF"
-                android:textSize="10sp" />
+                android:textSize="20sp" />
         </RelativeLayout>
 
         <RelativeLayout
