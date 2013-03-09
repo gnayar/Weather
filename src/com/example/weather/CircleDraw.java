@@ -13,6 +13,7 @@ public class CircleDraw extends View{
 	int finishdegree=80;
 	int startdegree = 0;
 	int color = 0xFFFFFF;
+	int paintWidth = 20;
 	public CircleDraw(Context context) {
 
 		super(context);
@@ -80,7 +81,9 @@ public class CircleDraw extends View{
 
 		paint.setColor(color);
 
-		paint.setStrokeWidth(20);	
+		paint.setStrokeWidth(paintWidth);	
+		 paint.setAntiAlias(true); 
+		 paint.setStrokeCap(Paint.Cap.ROUND);   
 
 
 
@@ -89,7 +92,7 @@ public class CircleDraw extends View{
 
 		center_x = width/2;
 
-		center_y = height/4;
+		center_y = height/2;
 
 		final RectF oval = new RectF();
 		

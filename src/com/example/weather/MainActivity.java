@@ -123,9 +123,9 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	public void setUpClock() {
 		GradientDrawable g = new GradientDrawable(Orientation.TL_BR, new int[] {
-				0xFF818181, 0xFF818181 });
+				Color.BLACK, Color.GRAY, 0xFF666666 });
 		g.setGradientType(GradientDrawable.RADIAL_GRADIENT);
-		g.setGradientRadius(2200.0f);
+		g.setGradientRadius(3000.0f);
 		g.setGradientCenter(0.5f, 0.5f);
 		TextView colorBox = (TextView) findViewById(R.id.color_box);
 		try {
@@ -135,12 +135,12 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		}
 		// set up background groove on hour
 		RelativeLayout clockHolder = (RelativeLayout) findViewById(R.id.draw_image_here);
-		// CircleDraw groove = new CircleDraw(context, 300.0f , 0,
-		// 360,0xFF616161);
-		// clockHolder.addView(groove);
-		// clockHolder.bringChildToFront(groove);
+		CircleDraw groove = new CircleDraw(context, 600.0f , 360,
+		0,0xFF666666);
+		clockHolder.addView(groove);
+		clockHolder.bringChildToFront(groove);
 
-		clockDrawn = new CircleDraw(context, 300.0f, -90, -90, colorSet);
+		clockDrawn = new CircleDraw(context, 600.0f, -90, -90, colorSet);
 		clockHolder.addView(clockDrawn);
 		clockHolder.bringChildToFront(clockDrawn);
 
@@ -488,6 +488,11 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 				if (d > 90) {
 					int hoursAdded = calculateClockAngle(angle);
+					TextView hoursTillShown = (TextView)findViewById(R.id.how_many_hours);
+					hoursTillShown.setText(hoursAdded + " Hours Later");
+					if(hoursAdded == 1){
+						hoursTillShown.setText(hoursAdded + " Hour Later");
+					}
 					clockToInternalTime(hoursAdded);
 					internalTime.minute = 0;
 				} else {
@@ -633,16 +638,16 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			output = "Noon";
 		}
 		Log.d(DEBUG_TAG, output);
-		if (digit == 3) {
-			TextView left = (TextView) findViewById(R.id.left);
-			left.setText(output);
-		} else if (digit == 2) {
-			TextView bottom = (TextView) findViewById(R.id.bottom);
-			bottom.setText(output);
-		} else if (digit == 1) {
-			TextView right = (TextView) findViewById(R.id.right);
-			right.setText(output);
-		}
+//		if (digit == 3) {
+//			TextView left = (TextView) findViewById(R.id.left);
+//			left.setText(output);
+//		} else if (digit == 2) {
+//			TextView bottom = (TextView) findViewById(R.id.bottom);
+//			bottom.setText(output);
+//		} else if (digit == 1) {
+//			TextView right = (TextView) findViewById(R.id.right);
+//			right.setText(output);
+//		}
 
 	}
 
@@ -870,7 +875,9 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 							.setText(Integer.toString(temperature) + "F");
 					TextView precipChance = (TextView) findViewById(R.id.precip_chooser);
 					precipChance.setText(Integer.toString(precip) + "%");
-					clockDrawn.color = craftColors(60, temperature, true);
+					int color = craftColors(60, temperature, true);
+					temperatureView.setTextColor(color);
+					clockDrawn.color = color;
 					clockDrawn.invalidate();
 
 				}

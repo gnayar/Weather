@@ -10,22 +10,9 @@
         android:layout_height="match_parent"
         android:layout_alignParentTop="true" />
 
-    <TextView
-        android:id="@+id/how_many_hours"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:background="#00FFFFFF"
-        android:textAllCaps="true"
-        android:text="In 5 hours"
-        android:textColor="#FFFFFF"
-        android:textSize="20dp" >
-    </TextView>
-
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/how_many_hours"
+        android:layout_height="fill_parent"
         android:orientation="vertical" >
 
         <RelativeLayout
@@ -36,113 +23,68 @@
             android:orientation="vertical" >
 
             <TextView
-                android:id="@+id/current"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:background="#00FFFFFF"
-                android:text="current"
-                android:textAllCaps="true"
-                android:textColor="#FFFFFF"
-                android:textSize="15dp" />
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true" >
-
-                <TextView
-                    android:id="@+id/left"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:layout_centerVertical="true"
-                    android:background="#00FFFFFF"
-                    android:paddingLeft="5dp"
-                    android:textColor="#FFFFFF"
-                    android:textSize="15dp" >
-                </TextView>
-
-                <TextView
-                    android:id="@+id/right"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_centerVertical="true"
-                    android:background="#00FFFFFF"
-                    android:paddingRight="5dp"
-                    android:textColor="#FFFFFF"
-                    android:textSize="15dp" >
-                </TextView>
-            </RelativeLayout>
-
-            <TextView
-                android:id="@+id/bottom"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true"
-                android:background="#00FFFFFF"
-                android:textColor="#FFFFFF"
-                android:textSize="15dp" >
-            </TextView>
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp" 
-            android:layout_weight=".1"
-            >
-            <TextView
                 android:id="@+id/temp_chooser"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
                 android:background="#00FFFFFF"
-                android:text=""
+                android:text="70F"
                 android:textAllCaps="true"
                 android:textColor="#FFFFFF"
-                android:textSize="20sp" />
+                android:textSize="70sp" />
 
             <TextView
                 android:id="@+id/precip_chooser"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
+                android:layout_below="@id/temp_chooser"
+                android:layout_centerHorizontal="true"
                 android:background="#00FFFFFF"
-                android:text=""
+                android:text="5%"
                 android:textAllCaps="true"
-                android:textColor="#FFFFFF"
+                android:textColor="#33B5E5"
                 android:textSize="20sp" />
-        </RelativeLayout>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight=".25"
-            >
             <TextView
+                android:id="@+id/how_many_hours"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/temp_chooser"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="105dp"
+                android:background="#00FFFFFF"
+                android:text="Current"
+                android:textColor="#CCCCCC"
+                android:textSize="30sp"/>
+			<TextView
                 android:id="@+id/choosertime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/precip_chooser"
+                android:layout_marginTop="55dp"           
+                android:layout_centerHorizontal="true"
                 android:background="#00FFFFFF"
                 android:paddingTop="30dp"
-                android:textColor="#FFFFFF"
+                android:textColor="#CCCCCC"
                 android:textSize="30sp" />
-
             <TextView
                 android:id="@+id/chooserdate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentRight="true"
+                android:layout_below="@id/choosertime"
+                android:layout_centerHorizontal="true"
                 android:background="#00FFFFFF"
                 android:textAllCaps="true"
-                android:textColor="#FFFFFF"
-                android:textSize="30sp" />
+                android:textColor="#CCCCFF"
+                android:textSize="15sp" />
+
+            
+
         </RelativeLayout>
+
+
+            
+        
     </LinearLayout>
 
 </RelativeLayout>
