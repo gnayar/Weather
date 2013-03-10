@@ -370,14 +370,34 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		ArrayList<Temperature> temps = new ArrayList<Temperature>();
 		for (int i = 0; i < future.size(); i++) {
 			String[] item = future.get(i);
-
-			// Log.d(DEBUG_TAG, "Looping: " +(item[7]));
-			// Log.d(DEBUG_TAG, "Looping: " +forecastPicMatcher.get(item[7]));
-			Temperature temp = new Temperature(Integer.parseInt(item[0]),
-					Integer.parseInt(item[1]), Integer.parseInt(item[3]),
-					Integer.parseInt(item[2]), Integer.parseInt(item[4]),
-					Integer.parseInt(item[5]), item[7], item[8],
-					forecastPicMatcher.get(item[7]), celsius);
+			Temperature temp;
+			Log.d(DEBUG_TAG, "Looping: " + (item[7]));
+			Log.d(DEBUG_TAG, "Looping: " + forecastPicMatcher.get(item[7]));
+			if (forecastPicMatcher.get(item[7]) == null) {
+				if (conditionPicMatcher.get(item[7]) != null) {//if cant find in forecast map, check conditions map (more extensive)
+					temp = new Temperature(Integer.parseInt(item[0]),
+							Integer.parseInt(item[1]),
+							Integer.parseInt(item[3]),
+							Integer.parseInt(item[2]),
+							Integer.parseInt(item[4]),
+							Integer.parseInt(item[5]), item[7], item[8],
+							conditionPicMatcher.get(item[7]), celsius);
+				} else {//if in neither map, display default cloud
+					temp = new Temperature(Integer.parseInt(item[0]),
+							Integer.parseInt(item[1]),
+							Integer.parseInt(item[3]),
+							Integer.parseInt(item[2]),
+							Integer.parseInt(item[4]),
+							Integer.parseInt(item[5]), item[7], item[8],
+							conditionPicMatcher.get("Cloudy"), celsius);
+				}
+			} else {//display if in forecast map
+				temp = new Temperature(Integer.parseInt(item[0]),
+						Integer.parseInt(item[1]), Integer.parseInt(item[3]),
+						Integer.parseInt(item[2]), Integer.parseInt(item[4]),
+						Integer.parseInt(item[5]), item[7], item[8],
+						forecastPicMatcher.get(item[7]), celsius);
+			}
 			temps.add(temp);
 		}
 		ListView days = (ListView) findViewById(R.id.days);
@@ -940,7 +960,8 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	}
 
 	public void callPreferences(View view) {
-		startActivity(new Intent(this, SettingsActivity.class));
+		Intent intent = new Intent(this, SettingsActivity.class);
+		startActivityForResult(intent, 1);
 	}
 
 	public void weatherAtTime(int type) {
@@ -1409,6 +1430,23 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			currentStateCode = tempy[1];
 			writeLocSharedPref();
 			fetchData();
+		}
+	}
+
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+		if (requestCode == 1) {
+
+			if (resultCode == RESULT_OK) {
+				boolean result = data.getBooleanExtra("result", false);
+				SharedPreferences sharedPref = PreferenceManager
+						.getDefaultSharedPreferences(this);
+				celsius = sharedPref.getBoolean("temp_scale", false);
+				fetchData();
+			}
+			if (resultCode == RESULT_CANCELED) {
+				// Write your code on no result return
+			}
 		}
 	}
 }

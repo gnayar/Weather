@@ -54,17 +54,23 @@ public class SettingsActivity extends PreferenceActivity implements
 		pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
 
 		    public boolean onPreferenceClick(Preference preference) {
-		    	Intent i= new Intent (context,MainActivity.class);
-				startActivity(i);
-		        return true; 
+		    Intent returnIntent = new Intent();
+           	 returnIntent.putExtra("result",true);
+           	 setResult(RESULT_OK,returnIntent);     
+           	 finish(); 
+           	 return true;
 		    }
 		});
 		Preference pref2 = (Preference) findPreference("weather_update");
 		pref2.setOnPreferenceClickListener(new OnPreferenceClickListener() {
 		             public boolean onPreferenceClick(Preference preference) {
-		 		    	Intent i= new Intent (context,MainActivity.class);
-						startActivity(i);
-				        return true; 
+		 		    	
+		            	 Intent returnIntent = new Intent();
+		            	 returnIntent.putExtra("result",true);
+		            	 setResult(RESULT_OK,returnIntent);     
+		            	 finish(); 
+		            	 return true;
+		            	 
 		             }
 		         });
 	}
