@@ -12,13 +12,14 @@ public class Temperature{
 	String condition;
 	String day;
 	int imageResourceID;
+	boolean celsius;
 	
 	public Temperature(){
 	}
 
 	public Temperature(int tempFHigh, int tempFLow, int tempCLow,
 			int tempCHigh, int precip, int windSpeed, String condition,
-			String day, int resourceID) {
+			String day, int resourceID, boolean celsius) {
 		super();
 		this.tempFHigh = tempFHigh;
 		this.tempFLow = tempFLow;
@@ -29,6 +30,7 @@ public class Temperature{
 		this.condition = condition;
 		this.day = day;
 		this.imageResourceID = resourceID;
+		this.celsius = celsius;
 		
 	}
 

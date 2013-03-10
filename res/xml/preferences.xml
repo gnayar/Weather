@@ -1,0 +1,16 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory
+        android:key="weather_settings"
+        android:title="Weather Settings" >
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="temp_scale"
+            android:summary="@string/temp_scale_description"
+            android:title="Use Celsius" />
+
+        <Preference android:title="Refresh Weather" android:key="weather_update"></Preference>
+        <Preference android:title="About" android:key="about"></Preference>
+    </PreferenceCategory>
+
+</PreferenceScreen>

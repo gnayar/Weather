@@ -5,8 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
@@ -15,6 +17,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MotionEventCompat;
@@ -34,7 +37,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.slidingmenu.lib.SlidingMenu;
-import com.slidingmenu.lib.SlidingMenu.CanvasTransformer;
 import com.slidingmenu.lib.app.SlidingActivity;
 
 public class MainActivity extends SlidingActivity implements LocationListener {
@@ -61,11 +63,10 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	Time displayTime = new Time();// time meant for display [0-12]
 	boolean am = true;// am or pm status for displayTime
 	boolean today = true;// today or tomorrow status for displayTime
-
+	
 	int amPmCount = 0;
 	int timeChangeCount = 0;
 
-	int signalColorChange = 0;
 
 	public enum State {
 		Q1, Q2, Q3, Q4, IDLE;
@@ -77,9 +78,10 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	int touchdownY = 0;
 	boolean increasingY = false;
 	int hoursAdded = 0;
+	
+	boolean celsius = false;
 
 	// Views
-	TextView clockSwipeTransition;// shows transition if swiping to change hours
 	TextView clock;// says what time it is, exists in two layouts
 	TextView dayView;// says what time it is, exists in two layouts
 	LinearLayout main;// root layout of main screen
@@ -93,6 +95,10 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		setContentView(R.layout.activity_main);
 		setBehindContentView(R.layout.menu);
 		context = this;
+		
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+		celsius = sharedPref.getBoolean("temp_scale", false);
+		
 		mDetector = new GestureDetectorCompat(this, new MyGestureListener());
 
 		setUpLayoutVars();
@@ -158,7 +164,6 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	}
 
 	private void setUpLayoutVars() {
-		clockSwipeTransition = (TextView) findViewById(R.id.time_mod);
 		main = (LinearLayout) findViewById(R.id.main);
 		menu = (RelativeLayout) findViewById(R.id.menu);
 	}
@@ -318,7 +323,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					Integer.parseInt(item[1]), Integer.parseInt(item[3]),
 					Integer.parseInt(item[2]), Integer.parseInt(item[4]),
 					Integer.parseInt(item[5]), item[7], item[8],
-					forecastPicMatcher.get(item[7]));
+					forecastPicMatcher.get(item[7]), celsius);
 			temps.add(temp);
 		}
 		ListView days = (ListView) findViewById(R.id.days);
@@ -332,24 +337,31 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	}
 
+	@SuppressLint("NewApi")
 	private void setUpSlidingMenu() {
 
 		SlidingMenu menu = getSlidingMenu();
 		menu.setBehindOffsetRes(R.dimen.slidingmenu_offset);
 		menu.setFadeEnabled(true);
 		menu.setFadeDegree(0.35f);
-		menu.setMode(SlidingMenu.LEFT_RIGHT);
-		menu.setSecondaryMenu(R.layout.menu2);
+		menu.setMode(SlidingMenu.LEFT);
 		menu.setAboveOffset(20);
 		menu.setShadowWidthRes(R.dimen.shadow_width);
 		menu.setShadowDrawable(R.drawable.shadow);
-		menu.setSecondaryShadowDrawable(R.drawable.shadow2);
 		menu.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
 
 	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
+		
+		SlidingMenu menu = getSlidingMenu();
+		
+		if(menu.getContent() == menu.getSecondaryMenu()){
+			
+			return true;
+		}
+		
 		this.mDetector.onTouchEvent(event);
 		int action = MotionEventCompat.getActionMasked(event);
 
@@ -572,7 +584,6 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				amPmCount = 0;
 				timeChangeCount = 0;
 
-				clockSwipeTransition.setTextColor(0x00CCCCFF);
 
 			}
 			return true;
@@ -845,6 +856,10 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		// TODO Auto-generated method stub
 
 	}
+	
+	public void callPreferences(View view){
+		startActivity(new Intent(this, SettingsActivity.class));
+	}
 
 	public void weatherAtTime(int type) {
 
@@ -860,6 +875,9 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			if (time == lookupHour) {
 				main = (LinearLayout) findViewById(R.id.main);
 				int temperature = Integer.parseInt(temp[0]);
+				if(celsius){
+					temperature = Integer.parseInt(temp[1]);
+				}
 				int wind = Integer.parseInt(temp[3]);
 				int precip = Integer.parseInt(temp[2]);
 				String condition = temp[5];
@@ -884,14 +902,12 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					}
 
 					if (temperature <= 50) {
-						colorSet = craftColors(60, temperature, true);
+						colorSet = craftColors(60, temperature, !celsius);
 						main.setBackgroundColor(colorSet);
-						signalColorChange = 1;
 						// hours.setBackgroundColor(0xFF33B5E5);
 					} else if (temperature > 50) {
-						colorSet = craftColors(60, temperature, true);
+						colorSet = craftColors(60, temperature, !celsius);
 						main.setBackgroundColor(colorSet);
-						signalColorChange = 2;
 						// hours.setBackgroundColor(0xFFFF9900);
 					}
 					return;
@@ -900,9 +916,13 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					TextView temperatureView = (TextView) findViewById(R.id.temp_chooser);
 					temperatureView
 							.setText(Integer.toString(temperature) + "F");
+					if(celsius){
+						temperatureView
+						.setText(Integer.toString(temperature) + "C");
+					}
 					TextView precipChance = (TextView) findViewById(R.id.precip_chooser);
 					precipChance.setText(Integer.toString(precip) + "%");
-					int color = craftColors(60, temperature, true);
+					int color = craftColors(60, temperature, !celsius);
 					temperatureView.setTextColor(color);
 					clockDrawn.color = color;
 					clockDrawn.invalidate();
@@ -912,6 +932,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		}
 	}
+	
 
 	public int craftColors(int thresholdTemp, int currentTemp,
 			boolean fahrenheitFlag) {

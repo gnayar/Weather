@@ -30,6 +30,7 @@ public class ForecastAdapter extends ArrayAdapter<Temperature> {
 			ArrayList<Temperature> temps) {
 		super(ctx, textViewResourceId, temps);
 		
+		
 		this.resource = textViewResourceId;
 		this.inflater = LayoutInflater.from(ctx);
 		context = ctx;
@@ -44,7 +45,12 @@ public class ForecastAdapter extends ArrayAdapter<Temperature> {
 		TextView title = (TextView) convertView.findViewById(R.id.day_forecast);
 		title.setText(temp.day);
 		TextView album = (TextView) convertView.findViewById(R.id.high_low);
-		album.setText("High" + temp.tempFHigh + " / Low:" + temp.tempFLow);
+		if(!temp.celsius){
+			album.setText("High" + temp.tempFHigh + " / Low:" + temp.tempFLow);
+		}
+		else{
+			album.setText("High" + temp.tempCHigh + " / Low:" + temp.tempCLow);
+		}
 		TextView artist = (TextView) convertView.findViewById(R.id.precip_forecast);
 		artist.setText(String.valueOf(temp.precip + "%"));
 		
