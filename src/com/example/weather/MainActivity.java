@@ -51,9 +51,12 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	private static final String DEBUG_TAG = "Motion";
 	private static final String WHERE_TAG = "Where";
 	public static final String PREFS_NAME = "LocationPrefs";
+	String locationProvider = LocationManager.NETWORK_PROVIDER;
 
 	private GestureDetectorCompat mDetector;
 	Context context;
+	
+	Boolean gottenWeather = false;
 	
 
 	int screenHeight, screenWidth;
@@ -143,7 +146,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		// fetchData();
 
-		setUpForecast();
+		//setUpForecast();
 
 		//setUpDataBase();
 
@@ -927,7 +930,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		locationManager.requestLocationUpdates(provider, 400, 1, this);
+		locationManager.requestLocationUpdates(provider, 400, 1000, this);
 	}
 
 	/* Remove the locationlistener updates when Activity is paused */
@@ -943,8 +946,12 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		lng = (int) (location.getLongitude());
 		Log.v("gps", "Latitude: " + lat + " Longitude: " + lng);
 		getLatLongSharedPref();
-		if (lat == oldLat && lng == oldLong) {
+		if(gottenWeather){
+			return;
+		}
+		if (lat == oldLat && lng == oldLong && !gottenWeather) {
 			fetchData();
+			boolean gottenWeather = true;
 			return;
 		} else {
 			writeLocSharedPref(lat, lng);
@@ -1434,15 +1441,13 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				// Format the first line of address (if available), city, and
 				// country name.
 				String addressText = String.format(
-						"%s, %s, %s",
-						address.getMaxAddressLineIndex() > 0 ? address
-								.getAddressLine(0) : "", address.getLocality(),
+						"%s, %s",
+						address.getLocality(),
 						address.getAdminArea());
 				// Update the UI via a message handler.
 				// Message.obtain(mHandler, UPDATE_ADDRESS,
 				// addressText).sendToTarget();
-				return address.getMaxAddressLineIndex() > 0 ? address
-						.getAddressLine(0) : "";
+				return addressText;
 
 			}
 			return null;
@@ -1463,7 +1468,10 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			Log.v("gps", "current state code: " + currentStateCode);
 			writeLocSharedPref();
 			setUpLocationList();
-			fetchData();
+			if(!gottenWeather){
+				fetchData();
+				gottenWeather = true;
+			};
 			
 		}
 	}
@@ -1477,12 +1485,16 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				SharedPreferences sharedPref = PreferenceManager
 						.getDefaultSharedPreferences(this);
 				celsius = sharedPref.getBoolean("temp_scale", false);
-				fetchData();
+				gottenWeather = true;
+				weatherAtTime(0);
+				
 			}
 			if (resultCode == RESULT_CANCELED) {
 				// Write your code on no result return
 			}
 		}
+		
+		
 	}
 	
 	public int getColorSet() {
@@ -1492,4 +1504,5 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	public void setColorSet(int colorSet) {
 		this.colorSet = colorSet;
 	}
+
 }
