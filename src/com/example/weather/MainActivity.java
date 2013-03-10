@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,7 +22,6 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.view.GestureDetectorCompat;
@@ -36,7 +34,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -55,9 +52,8 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	private GestureDetectorCompat mDetector;
 	Context context;
-	
+
 	Boolean gottenWeather = false;
-	
 
 	int screenHeight, screenWidth;
 	public int colorSet;
@@ -66,7 +62,9 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	ArrayList<String[]> future = new ArrayList<String[]>();
 	Map<String, Integer> conditionPicMatcher;
 	Map<String, Integer> forecastPicMatcher;
-	ArrayList<CityState> places = new ArrayList<CityState>(); //plug from database into here
+	ArrayList<CityState> places = new ArrayList<CityState>(); // plug from
+																// database into
+																// here
 	LocationAdapter adapter;
 	String currentCity;
 	String currentStateCode;
@@ -104,6 +102,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	int hoursAdded = 0;
 
 	boolean celsius = false;
+	boolean gps = false;
 
 	// Views
 	TextView clock;// says what time it is, exists in two layouts
@@ -123,12 +122,10 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		SharedPreferences sharedPref = PreferenceManager
 				.getDefaultSharedPreferences(this);
 		celsius = sharedPref.getBoolean("temp_scale", false);
-
+		gps = sharedPref.getBoolean("gps", true);
 		mDetector = new GestureDetectorCompat(this, new MyGestureListener());
 
 		setUpLayoutVars();
-
-		
 
 		setUpSlidingMenu();
 
@@ -146,17 +143,14 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		// fetchData();
 
-		//setUpForecast();
+		// setUpForecast();
 
-		//setUpDataBase();
-
-		setUpGPS();
-
+		// setUpDataBase();
+		if (gps) {
+			setUpGPS();
+		}
 		setUpLocationList();
-		
-		
-		
-		
+
 	}
 
 	public void setUpClock() {
@@ -318,7 +312,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		// String[7] test1 = { "200", "201", "202", "203", "204", "205", "206"};
 
-		//datasource.addWeather(current.get(0));
+		// datasource.addWeather(current.get(0));
 		Log.v("db", "Found weather data");
 		// datasource.createComment("TEST");
 		// datasource.createComment("TEST1");
@@ -352,7 +346,6 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		try {
 			parser.execute("0", temp.city, temp.state);
 			parser2.execute("1", temp.city, temp.state);
-			
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -377,8 +370,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		places.add(new CityState("Boston", "MA"));
 		places.add(new CityState("Pittsburgh", "PA"));
 		places.add(new CityState("Tampa", "FL"));
-		adapter = new LocationAdapter(this,
-				R.layout.location_row_item, places);
+		adapter = new LocationAdapter(this, R.layout.location_row_item, places);
 		locs.setAdapter(adapter);
 
 	}
@@ -930,14 +922,18 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		locationManager.requestLocationUpdates(provider, 400, 1000, this);
+		if (gps) {
+			locationManager.requestLocationUpdates(provider, 400, 1000, this);
+		}
 	}
 
 	/* Remove the locationlistener updates when Activity is paused */
 	@Override
 	protected void onPause() {
 		super.onPause();
-		locationManager.removeUpdates(this);
+		if (gps) {
+			locationManager.removeUpdates(this);
+		}
 	}
 
 	@Override
@@ -946,7 +942,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		lng = (int) (location.getLongitude());
 		Log.v("gps", "Latitude: " + lat + " Longitude: " + lng);
 		getLatLongSharedPref();
-		if(gottenWeather){
+		if (gottenWeather) {
 			return;
 		}
 		if (lat == oldLat && lng == oldLong && !gottenWeather) {
@@ -1018,17 +1014,18 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					// Log.d(DEBUG_TAG, "Found Info: "+time+"   Temp: " +
 					// temperature + " condition: " + condition);
 					TextView temperatureView = (TextView) findViewById(R.id.temperature);
-					try{
-					if (celsius) {
-						temperatureView.setText(Integer.toString(temperature)
-								+ "C");
-					} else {
-						temperatureView.setText(Integer.toString(temperature)
-								+ "F");
-					}
-					}catch(NullPointerException e){
+					try {
+						if (celsius) {
+							temperatureView.setText(Integer
+									.toString(temperature) + "C");
+						} else {
+							temperatureView.setText(Integer
+									.toString(temperature) + "F");
+						}
+					} catch (NullPointerException e) {
 						e.printStackTrace();
-						Log.e(DEBUG_TAG,"View id "+ Integer.valueOf(R.id.temperature));
+						Log.e(DEBUG_TAG,
+								"View id " + Integer.valueOf(R.id.temperature));
 						temperatureView.setText(Integer.toString(temperature)
 								+ "F");
 					}
@@ -1440,10 +1437,8 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				Address address = addresses.get(0);
 				// Format the first line of address (if available), city, and
 				// country name.
-				String addressText = String.format(
-						"%s, %s",
-						address.getLocality(),
-						address.getAdminArea());
+				String addressText = String.format("%s, %s",
+						address.getLocality(), address.getAdminArea());
 				// Update the UI via a message handler.
 				// Message.obtain(mHandler, UPDATE_ADDRESS,
 				// addressText).sendToTarget();
@@ -1463,16 +1458,17 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			String temp = components[1];
 			String[] tempy = temp.split("\\s+");
 			currentStateCode = tempy[1];
-			
+
 			Log.v("gps", "current city: " + currentCity);
 			Log.v("gps", "current state code: " + currentStateCode);
 			writeLocSharedPref();
 			setUpLocationList();
-			if(!gottenWeather){
+			if (!gottenWeather) {
 				fetchData();
 				gottenWeather = true;
-			};
-			
+			}
+			;
+
 		}
 	}
 
@@ -1487,16 +1483,15 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				celsius = sharedPref.getBoolean("temp_scale", false);
 				gottenWeather = true;
 				weatherAtTime(0);
-				
+
 			}
 			if (resultCode == RESULT_CANCELED) {
 				// Write your code on no result return
 			}
 		}
-		
-		
+
 	}
-	
+
 	public int getColorSet() {
 		return colorSet;
 	}

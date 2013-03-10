@@ -8,9 +8,20 @@
             android:key="temp_scale"
             android:summary="@string/temp_scale_description"
             android:title="Use Celsius" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="gps"
+            android:summary="@string/gps_description"
+            android:title="GPS Location" />
 
-        <Preference android:title="Refresh Weather" android:key="weather_update"></Preference>
-        <Preference android:title="About" android:key="about"></Preference>
+        <Preference
+            android:key="weather_update"
+            android:title="Refresh Weather" >
+        </Preference>
+        <Preference
+            android:key="about"
+            android:title="About" >
+        </Preference>
     </PreferenceCategory>
 
 </PreferenceScreen>
