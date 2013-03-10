@@ -64,6 +64,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	Map<String, Integer> conditionPicMatcher;
 	Map<String, Integer> forecastPicMatcher;
 	ArrayList<CityState> places = new ArrayList<CityState>(); //plug from database into here
+	LocationAdapter adapter;
 	String currentCity;
 	String currentStateCode;
 	// for gps
@@ -368,7 +369,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		places.add(new CityState("Boston", "MA"));
 		places.add(new CityState("Pittsburgh", "PA"));
 		places.add(new CityState("Tampa", "FL"));
-		LocationAdapter adapter = new LocationAdapter(this,
+		adapter = new LocationAdapter(this,
 				R.layout.location_row_item, places);
 		locs.setAdapter(adapter);
 
@@ -1043,6 +1044,8 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 						main.setBackgroundColor(colorSet);
 						// hours.setBackgroundColor(0xFFFF9900);
 					}
+
+					adapter.notifyDataSetChanged();
 					return;
 				} else if (type == 1) {
 					menu = (RelativeLayout) findViewById(R.id.menu);

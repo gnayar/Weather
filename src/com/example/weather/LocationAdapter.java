@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,15 +41,24 @@ public class LocationAdapter extends ArrayAdapter<CityState> {
 		
 		convertView = (RelativeLayout) inflater.inflate(resource,  null);
 		final CityState place = getItem(position);
-		TextView city = (TextView) convertView.findViewById(R.id.city);
-		city.setText(place.city);
 		TextView state = (TextView) convertView.findViewById(R.id.state);
-		state.setText(place.state);
+		TextView city = (TextView) convertView.findViewById(R.id.city);
 		if(position == 0){
 			int color = ((MainActivity)context).colorSet;
+			if(color == 0){
+				 color = Color.GREEN;
+			}
 			city.setTextColor(color);
 			state.setTextColor(color);
 		}
+		else{
+			int color = Color.WHITE;
+			city.setTextColor(color);
+			state.setTextColor(color);
+		}
+		city.setText(place.city);
+		
+		state.setText(place.state);
 		return convertView;
 	}
 		
