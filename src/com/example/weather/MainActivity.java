@@ -54,14 +54,16 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	private GestureDetectorCompat mDetector;
 	Context context;
+	
+
 	int screenHeight, screenWidth;
-	int colorSet;
+	public int colorSet;
 
 	ArrayList<String[]> current = new ArrayList<String[]>();
 	ArrayList<String[]> future = new ArrayList<String[]>();
 	Map<String, Integer> conditionPicMatcher;
 	Map<String, Integer> forecastPicMatcher;
-	String[] locations = { "Gainesville", "Jacksonville", "New York" };
+	ArrayList<CityState> places = new ArrayList<CityState>(); //plug from database into here
 	String currentCity;
 	String currentStateCode;
 	// for gps
@@ -122,7 +124,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		setUpLayoutVars();
 
-		// setUpLocationList();
+		
 
 		setUpSlidingMenu();
 
@@ -146,6 +148,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		setUpGPS();
 
+		setUpLocationList();
 	}
 
 	public void setUpClock() {
@@ -215,7 +218,8 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		oldLong = settings.getInt("long", 0);
 		currentCity = settings.getString("currentCity", " ");
 		currentStateCode = settings.getString("currentStateCode", " ");
-
+		CityState temp = new CityState(currentCity, currentStateCode);
+		places.add(temp);
 		Log.d(WHERE_TAG, "Reading  " + currentCity);
 		Log.d(WHERE_TAG, "Reading  " + currentStateCode);
 
@@ -336,10 +340,10 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		parser2.setContext(context);
 		Log.v("http", "parser attempting");
 		// ArrayList<String> testArray;
-
+		CityState temp = places.get(0);
 		try {
-			parser.execute("0", currentCity, currentStateCode);
-			parser2.execute("1", currentCity, currentStateCode);
+			parser.execute("0", temp.city, temp.state);
+			parser2.execute("1", temp.city, temp.state);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -359,10 +363,14 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	}
 
 	private void setUpLocationList() {
-		ListView places = (ListView) findViewById(R.id.locations);
-		ArrayAdapter<String> a = new ArrayAdapter<String>(this,
-				android.R.layout.simple_list_item_1, locations);
-		places.setAdapter(a);
+		ListView locs = (ListView) findViewById(R.id.locations);
+		places.add(new CityState("Atlanta", "GA"));
+		places.add(new CityState("Boston", "MA"));
+		places.add(new CityState("Pittsburgh", "PA"));
+		places.add(new CityState("Tampa", "FL"));
+		LocationAdapter adapter = new LocationAdapter(this,
+				R.layout.location_row_item, places);
+		locs.setAdapter(adapter);
 
 	}
 
@@ -1441,6 +1449,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			String[] tempy = temp.split("\\s+");
 			currentStateCode = tempy[1];
 			writeLocSharedPref();
+			setUpLocationList();
 			fetchData();
 		}
 	}
@@ -1460,5 +1469,13 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				// Write your code on no result return
 			}
 		}
+	}
+	
+	public int getColorSet() {
+		return colorSet;
+	}
+
+	public void setColorSet(int colorSet) {
+		this.colorSet = colorSet;
 	}
 }

@@ -20,15 +20,15 @@ import android.widget.Toast;
 import android.app.Application;
 
 
-public class ForecastAdapter extends ArrayAdapter<Temperature> {
+public class LocationAdapter extends ArrayAdapter<CityState> {
 	
 	private int resource;
 	private LayoutInflater inflater;
 	private Context context;
 	
-	public ForecastAdapter(Context ctx, int textViewResourceId,
-			ArrayList<Temperature> temps) {
-		super(ctx, textViewResourceId, temps);
+	public LocationAdapter(Context ctx, int textViewResourceId,
+			ArrayList<CityState> locs) {
+		super(ctx, textViewResourceId, locs);
 		
 		
 		this.resource = textViewResourceId;
@@ -39,21 +39,16 @@ public class ForecastAdapter extends ArrayAdapter<Temperature> {
 	public View getView (final int position, View convertView, ViewGroup parent){
 		
 		convertView = (RelativeLayout) inflater.inflate(resource,  null);
-		final Temperature temp = getItem(position);
-		ImageView condition = (ImageView) convertView.findViewById(R.id.condition_pic);
-		condition.setBackgroundResource(temp.imageResourceID);
-		TextView title = (TextView) convertView.findViewById(R.id.day_forecast);
-		title.setText(temp.day);
-		TextView album = (TextView) convertView.findViewById(R.id.high_low);
-		if(!temp.celsius){
-			album.setText("High: " + temp.tempFHigh + " / Low: " + temp.tempFLow);
+		final CityState place = getItem(position);
+		TextView city = (TextView) convertView.findViewById(R.id.city);
+		city.setText(place.city);
+		TextView state = (TextView) convertView.findViewById(R.id.state);
+		state.setText(place.state);
+		if(position == 0){
+			int color = ((MainActivity)context).colorSet;
+			city.setTextColor(color);
+			state.setTextColor(color);
 		}
-		else{
-			album.setText("High: " + temp.tempCHigh + " / Low: " + temp.tempCLow);
-		}
-		TextView artist = (TextView) convertView.findViewById(R.id.precip_forecast);
-		artist.setText(String.valueOf(temp.precip + "%"));
-		
 		return convertView;
 	}
 		
@@ -66,10 +61,10 @@ public class ForecastAdapter extends ArrayAdapter<Temperature> {
 	
 	
 	
-	public void refreshTemps(ArrayList<Temperature> inputTemps) {
+	public void refreshLocations(ArrayList<CityState> inputLocs) {
 		this.clear();
-		for(int i =0; i < inputTemps.size(); i++) {
-			this.add(inputTemps.get(i));
+		for(int i =0; i < inputLocs.size(); i++) {
+			this.add(inputLocs.get(i));
 		}
 	}
 	
