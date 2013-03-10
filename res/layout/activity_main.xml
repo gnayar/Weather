@@ -54,7 +54,7 @@
                 android:layout_alignTop="@id/temperature"
                 android:layout_toRightOf="@id/temperature"
                 android:paddingTop="25dp"
-                android:text="F"
+                android:text=" "
                 android:textColor="#FFFFFF"
                 android:textSize="25dp" />
 

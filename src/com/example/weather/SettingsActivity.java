@@ -59,6 +59,14 @@ public class SettingsActivity extends PreferenceActivity implements
 		        return true; 
 		    }
 		});
+		Preference pref2 = (Preference) findPreference("weather_update");
+		pref2.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+		             public boolean onPreferenceClick(Preference preference) {
+		 		    	Intent i= new Intent (context,MainActivity.class);
+						startActivity(i);
+				        return true; 
+		             }
+		         });
 	}
 
 	@Override

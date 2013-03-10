@@ -46,10 +46,10 @@ public class ForecastAdapter extends ArrayAdapter<Temperature> {
 		title.setText(temp.day);
 		TextView album = (TextView) convertView.findViewById(R.id.high_low);
 		if(!temp.celsius){
-			album.setText("High" + temp.tempFHigh + " / Low:" + temp.tempFLow);
+			album.setText("High: " + temp.tempFHigh + " / Low: " + temp.tempFLow);
 		}
 		else{
-			album.setText("High" + temp.tempCHigh + " / Low:" + temp.tempCLow);
+			album.setText("High: " + temp.tempCHigh + " / Low: " + temp.tempCLow);
 		}
 		TextView artist = (TextView) convertView.findViewById(R.id.precip_forecast);
 		artist.setText(String.valueOf(temp.precip + "%"));

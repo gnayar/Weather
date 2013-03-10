@@ -1,8 +1,10 @@
 package com.example.weather;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import android.annotation.SuppressLint;
@@ -12,11 +14,16 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
+import android.location.Address;
 import android.location.Criteria;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.view.GestureDetectorCompat;
@@ -29,6 +36,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -41,6 +49,8 @@ import com.slidingmenu.lib.app.SlidingActivity;
 
 public class MainActivity extends SlidingActivity implements LocationListener {
 	private static final String DEBUG_TAG = "Motion";
+	private static final String WHERE_TAG = "Where";
+	public static final String PREFS_NAME = "LocationPrefs";
 
 	private GestureDetectorCompat mDetector;
 	Context context;
@@ -51,9 +61,14 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	ArrayList<String[]> future = new ArrayList<String[]>();
 	Map<String, Integer> conditionPicMatcher;
 	Map<String, Integer> forecastPicMatcher;
-
+	String[] locations = { "Gainesville", "Jacksonville", "New York" };
+	String currentCity;
+	String currentStateCode;
 	// for gps
-	int lng, lat;
+	int lng = 0;
+	int lat = 0;
+	int oldLat;
+	int oldLong;
 
 	// Variables to set time
 	boolean inHours = false;
@@ -63,10 +78,13 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	Time displayTime = new Time();// time meant for display [0-12]
 	boolean am = true;// am or pm status for displayTime
 	boolean today = true;// today or tomorrow status for displayTime
-	
+
 	int amPmCount = 0;
 	int timeChangeCount = 0;
 
+	LocationManager locationManager;
+	Criteria criteria;
+	String provider;
 
 	public enum State {
 		Q1, Q2, Q3, Q4, IDLE;
@@ -78,7 +96,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	int touchdownY = 0;
 	boolean increasingY = false;
 	int hoursAdded = 0;
-	
+
 	boolean celsius = false;
 
 	// Views
@@ -95,13 +113,16 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		setContentView(R.layout.activity_main);
 		setBehindContentView(R.layout.menu);
 		context = this;
-		
-		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
+		SharedPreferences sharedPref = PreferenceManager
+				.getDefaultSharedPreferences(this);
 		celsius = sharedPref.getBoolean("temp_scale", false);
-		
+
 		mDetector = new GestureDetectorCompat(this, new MyGestureListener());
 
 		setUpLayoutVars();
+
+		// setUpLocationList();
 
 		setUpSlidingMenu();
 
@@ -117,7 +138,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		setUpMotion();
 
-		fetchData();
+		// fetchData();
 
 		setUpForecast();
 
@@ -141,8 +162,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		}
 		// set up background groove on hour
 		RelativeLayout clockHolder = (RelativeLayout) findViewById(R.id.draw_image_here);
-		CircleDraw groove = new CircleDraw(context, 600.0f , 360,
-		0,0xFF666666);
+		CircleDraw groove = new CircleDraw(context, 600.0f, 360, 0, 0xFF666666);
 		clockHolder.addView(groove);
 		clockHolder.bringChildToFront(groove);
 
@@ -168,6 +188,39 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		menu = (RelativeLayout) findViewById(R.id.menu);
 	}
 
+	private void writeLocSharedPref(int latitude, int longitude) {
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putInt("lat", latitude);
+		editor.putInt("long", longitude);
+
+		// Commit the edits!
+		editor.commit();
+	}
+
+	private void writeLocSharedPref() {
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString("currentCity", currentCity);
+		editor.putString("currentStateCode", currentStateCode);
+		Log.d(WHERE_TAG, "Writing in  " + currentCity);
+		Log.d(WHERE_TAG, "Writing in  " + currentStateCode);
+		// Commit the edits!
+		editor.commit();
+	}
+
+	private void getLatLongSharedPref() {
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		oldLat = settings.getInt("lat", 0);
+		oldLong = settings.getInt("long", 0);
+		currentCity = settings.getString("currentCity", " ");
+		currentStateCode = settings.getString("currentStateCode", " ");
+
+		Log.d(WHERE_TAG, "Reading  " + currentCity);
+		Log.d(WHERE_TAG, "Reading  " + currentStateCode);
+
+	}
+
 	private void setUpGPS() {
 		// GPS TESTING
 		LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -188,11 +241,11 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			Log.v("gps", "GPS is enabled");
 
 			// Get the location manager
-			LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+			locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 			// Define the criteria how to select the location provider -> use
 			// default
-			Criteria criteria = new Criteria();
-			String provider = locationManager.getBestProvider(criteria, false);
+			criteria = new Criteria();
+			provider = locationManager.getBestProvider(criteria, false);
 			Log.v("gps", "provider: " + provider);
 
 			if (locationManager.isProviderEnabled(provider)) {
@@ -219,69 +272,62 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	}
 
-	 private void setUpDataBase() {
-			// testing forecast json obj
-	 
-			// String[] test = future.get(4);
-			// for(int i = 0; i < 10; i++) {
-			// Log.v("http", test[i]);
-			// }
-	 
-			/*
-			 * OKAY GAUTAM READ
-			 * 
-			 * Currently, the data is being held in an arraylist and I am only
-			 * parsing some data. Just let me know if you need more. Its currently
-			 * stored based on indices -> I know this is retarded I will use a hash
-			 * or key value pair soon
-			 */
-	 
-			// TESTING DATABASE
-			CommentsDataSource datasource = new CommentsDataSource(this);
-			datasource.open();
-			
-			Log.v("db", "Inserting...");
-	 
-			String[] test0 = new String[7];
-			test0[0] = "100";
-			test0[1] = "101";
-			test0[2] = "102";
-			test0[3] = "103";
-			test0[4] = "104";
-			test0[5] = "105";
-			test0[6] = "106";
-	 
-			
-			 
-					 
-			//String[7] test1 = { "200", "201", "202", "203", "204", "205", "206"};
-	 
-			
-			datasource.addWeather(test0);
-			Log.v("db", "Found weather data");
-			//datasource.createComment("TEST");
-			//datasource.createComment("TEST1");
-			//datasource.createComment("TEST2");
-			Log.v("db", "Reading...");
-			List<String[]> test = datasource.getAllWeather();
-	 
-			Log.v("db", "Printing...");
-			Log.v("db", test.size() + "");
-			for (int i = 0; i < test.size(); i++) {
-				Log.v("db", "TEMPF: " + test.get(i)[0]);
-				Log.v("db", "TEMPC1: " + test.get(i)[1]);
-				Log.v("db", "TEMPC2: " + test.get(i)[2]);
-				Log.v("db", "TEMPC3: " + test.get(i)[3]);
-				Log.v("db", "TEMPC4: " + test.get(i)[4]);
-				Log.v("db", "TEMPC5: " + test.get(i)[5]);
-				Log.v("db", "TEMPC6: " + test.get(i)[6]);
-				Log.v("db", "TEMPC7: " + test.get(i)[7]);
-	 
-	 
-				
-	 
-			}
+	private void setUpDataBase() {
+		// testing forecast json obj
+
+		// String[] test = future.get(4);
+		// for(int i = 0; i < 10; i++) {
+		// Log.v("http", test[i]);
+		// }
+
+		/*
+		 * OKAY GAUTAM READ
+		 * 
+		 * Currently, the data is being held in an arraylist and I am only
+		 * parsing some data. Just let me know if you need more. Its currently
+		 * stored based on indices -> I know this is retarded I will use a hash
+		 * or key value pair soon
+		 */
+
+		// TESTING DATABASE
+		CommentsDataSource datasource = new CommentsDataSource(this);
+		datasource.open();
+
+		Log.v("db", "Inserting...");
+
+		String[] test0 = new String[7];
+		test0[0] = "100";
+		test0[1] = "101";
+		test0[2] = "102";
+		test0[3] = "103";
+		test0[4] = "104";
+		test0[5] = "105";
+		test0[6] = "106";
+
+		// String[7] test1 = { "200", "201", "202", "203", "204", "205", "206"};
+
+		datasource.addWeather(test0);
+		Log.v("db", "Found weather data");
+		// datasource.createComment("TEST");
+		// datasource.createComment("TEST1");
+		// datasource.createComment("TEST2");
+		Log.v("db", "Reading...");
+		List<String[]> test = datasource.getAllWeather();
+
+		Log.v("db", "Printing...");
+		Log.v("db", test.size() + "");
+		for (int i = 0; i < test.size(); i++) {
+			Log.v("db", "TEMPF: " + test.get(i)[0]);
+			Log.v("db", "TEMPC1: " + test.get(i)[1]);
+			Log.v("db", "TEMPC2: " + test.get(i)[2]);
+			Log.v("db", "TEMPC3: " + test.get(i)[3]);
+			Log.v("db", "TEMPC4: " + test.get(i)[4]);
+			Log.v("db", "TEMPC5: " + test.get(i)[5]);
+			Log.v("db", "TEMPC6: " + test.get(i)[6]);
+			Log.v("db", "TEMPC7: " + test.get(i)[7]);
+
 		}
+	}
 
 	private void fetchData() {
 		JSONParser parser = new JSONParser();
@@ -292,8 +338,8 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		// ArrayList<String> testArray;
 
 		try {
-			parser.execute("0", "Gainesville", "FL");
-			parser2.execute("1", "Gainesville", "FL");
+			parser.execute("0", currentCity, currentStateCode);
+			parser2.execute("1", currentCity, currentStateCode);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -312,6 +358,14 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	}
 
+	private void setUpLocationList() {
+		ListView places = (ListView) findViewById(R.id.locations);
+		ArrayAdapter<String> a = new ArrayAdapter<String>(this,
+				android.R.layout.simple_list_item_1, locations);
+		places.setAdapter(a);
+
+	}
+
 	public void setUpForecast() {
 		ArrayList<Temperature> temps = new ArrayList<Temperature>();
 		for (int i = 0; i < future.size(); i++) {
@@ -327,8 +381,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			temps.add(temp);
 		}
 		ListView days = (ListView) findViewById(R.id.days);
-		days.setCacheColorHint(Color.TRANSPARENT); // not sure if this is
-													// required for you.
+		days.setCacheColorHint(Color.TRANSPARENT);
 		days.setFastScrollEnabled(true);
 		days.setScrollingCacheEnabled(true);
 		ForecastAdapter adapter = new ForecastAdapter(this,
@@ -337,31 +390,32 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	}
 
-	@SuppressLint("NewApi")
 	private void setUpSlidingMenu() {
 
 		SlidingMenu menu = getSlidingMenu();
 		menu.setBehindOffsetRes(R.dimen.slidingmenu_offset);
 		menu.setFadeEnabled(true);
 		menu.setFadeDegree(0.35f);
-		menu.setMode(SlidingMenu.LEFT);
+		menu.setMode(SlidingMenu.LEFT_RIGHT);
+		menu.setSecondaryMenu(R.layout.menu2);
 		menu.setAboveOffset(20);
 		menu.setShadowWidthRes(R.dimen.shadow_width);
 		menu.setShadowDrawable(R.drawable.shadow);
+		menu.setSecondaryShadowDrawable(R.drawable.shadow2);
 		menu.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
 
 	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		
+
 		SlidingMenu menu = getSlidingMenu();
-		
-		if(menu.getContent() == menu.getSecondaryMenu()){
-			
+
+		if (menu.getContent() == menu.getSecondaryMenu()) {
+
 			return true;
 		}
-		
+
 		this.mDetector.onTouchEvent(event);
 		int action = MotionEventCompat.getActionMasked(event);
 
@@ -527,9 +581,9 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 				if (d > 90) {
 					int hoursAdded = calculateClockAngle(angle);
-					TextView hoursTillShown = (TextView)findViewById(R.id.how_many_hours);
+					TextView hoursTillShown = (TextView) findViewById(R.id.how_many_hours);
 					hoursTillShown.setText(hoursAdded + " Hours Later");
-					if(hoursAdded == 1){
+					if (hoursAdded == 1) {
 						hoursTillShown.setText(hoursAdded + " Hour Later");
 					}
 					clockToInternalTime(hoursAdded);
@@ -584,7 +638,6 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 				amPmCount = 0;
 				timeChangeCount = 0;
 
-
 			}
 			return true;
 		case (MotionEvent.ACTION_CANCEL):
@@ -601,7 +654,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	}
 
 	private void moveHourOverlay(int angle) {
-		int angleDrawn = (540-angle)%360;
+		int angleDrawn = (540 - angle) % 360;
 		Log.d(DEBUG_TAG, String.valueOf(angleDrawn));
 		clockDrawn.finishdegree = angleDrawn;
 		clockDrawn.invalidate();
@@ -676,16 +729,16 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			output = "Noon";
 		}
 		Log.d(DEBUG_TAG, output);
-//		if (digit == 3) {
-//			TextView left = (TextView) findViewById(R.id.left);
-//			left.setText(output);
-//		} else if (digit == 2) {
-//			TextView bottom = (TextView) findViewById(R.id.bottom);
-//			bottom.setText(output);
-//		} else if (digit == 1) {
-//			TextView right = (TextView) findViewById(R.id.right);
-//			right.setText(output);
-//		}
+		// if (digit == 3) {
+		// TextView left = (TextView) findViewById(R.id.left);
+		// left.setText(output);
+		// } else if (digit == 2) {
+		// TextView bottom = (TextView) findViewById(R.id.bottom);
+		// bottom.setText(output);
+		// } else if (digit == 1) {
+		// TextView right = (TextView) findViewById(R.id.right);
+		// right.setText(output);
+		// }
 
 	}
 
@@ -830,13 +883,42 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	}
 
 	// GPS
+
+	/* Request updates at startup */
+	@Override
+	protected void onResume() {
+		super.onResume();
+		locationManager.requestLocationUpdates(provider, 400, 1, this);
+	}
+
+	/* Remove the locationlistener updates when Activity is paused */
+	@Override
+	protected void onPause() {
+		super.onPause();
+		locationManager.removeUpdates(this);
+	}
+
 	@Override
 	public void onLocationChanged(Location location) {
 		lat = (int) (location.getLatitude());
 		lng = (int) (location.getLongitude());
 		Log.v("gps", "Latitude: " + lat + " Longitude: " + lng);
-
-	}
+		getLatLongSharedPref();
+		if (lat == oldLat && lng == oldLong) {
+			fetchData();
+			return;
+		} else {
+			writeLocSharedPref(lat, lng);
+		}
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD
+				&& Geocoder.isPresent()) {
+			// Since the geocoding API is synchronous and may take a while. You
+			// don't want to lock
+			// up the UI thread. Invoking reverse geocoding in an AsyncTask.
+			(new ReverseGeocodingTask(this))
+					.execute(new Location[] { location });
+		}
+	};
 
 	@Override
 	public void onProviderDisabled(String provider) {
@@ -856,8 +938,8 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		// TODO Auto-generated method stub
 
 	}
-	
-	public void callPreferences(View view){
+
+	public void callPreferences(View view) {
 		startActivity(new Intent(this, SettingsActivity.class));
 	}
 
@@ -874,9 +956,13 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			// Log.d(DEBUG_TAG, "Looping: " +time);
 			if (time == lookupHour) {
 				main = (LinearLayout) findViewById(R.id.main);
-				int temperature = Integer.parseInt(temp[0]);
-				if(celsius){
+				int temperature = 0;
+				if (celsius) {
 					temperature = Integer.parseInt(temp[1]);
+
+				} else if (!celsius) {
+					temperature = Integer.parseInt(temp[0]);
+
 				}
 				int wind = Integer.parseInt(temp[3]);
 				int precip = Integer.parseInt(temp[2]);
@@ -885,7 +971,13 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					// Log.d(DEBUG_TAG, "Found Info: "+time+"   Temp: " +
 					// temperature + " condition: " + condition);
 					TextView temperatureView = (TextView) findViewById(R.id.temperature);
-					temperatureView.setText(Integer.toString(temperature));
+					if (celsius) {
+						temperatureView.setText(Integer.toString(temperature)
+								+ "C");
+					} else {
+						temperatureView.setText(Integer.toString(temperature)
+								+ "F");
+					}
 					TextView windSpeed = (TextView) findViewById(R.id.windspeed);
 					windSpeed.setText(Integer.toString(wind) + "mph");
 					TextView precipChance = (TextView) findViewById(R.id.precip);
@@ -916,9 +1008,9 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					TextView temperatureView = (TextView) findViewById(R.id.temp_chooser);
 					temperatureView
 							.setText(Integer.toString(temperature) + "F");
-					if(celsius){
-						temperatureView
-						.setText(Integer.toString(temperature) + "C");
+					if (celsius) {
+						temperatureView.setText(Integer.toString(temperature)
+								+ "C");
 					}
 					TextView precipChance = (TextView) findViewById(R.id.precip_chooser);
 					precipChance.setText(Integer.toString(precip) + "%");
@@ -932,7 +1024,6 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		}
 	}
-	
 
 	public int craftColors(int thresholdTemp, int currentTemp,
 			boolean fahrenheitFlag) {
@@ -972,9 +1063,9 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			builder.append(BLUE);
 			builder.append("0");
 			int color;
-			try{
+			try {
 				color = Color.parseColor(builder.toString());
-			}catch(IllegalArgumentException e){
+			} catch (IllegalArgumentException e) {
 				color = (0xFF33B5E5);
 			}
 			return color;
@@ -1260,4 +1351,64 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	}
 
+	// AsyncTask encapsulating the reverse-geocoding API. Since the geocoder API
+	// is blocked,
+	// we do not want to invoke it from the UI thread.
+	private class ReverseGeocodingTask extends
+			AsyncTask<Location, Void, String> {
+		Context mContext;
+
+		public ReverseGeocodingTask(Context context) {
+			super();
+			mContext = context;
+		}
+
+		@Override
+		protected String doInBackground(Location... params) {
+			Geocoder geocoder = new Geocoder(mContext, Locale.getDefault());
+
+			Location loc = params[0];
+			List<Address> addresses = null;
+			try {
+				// Call the synchronous getFromLocation() method by passing in
+				// the lat/long values.
+				addresses = geocoder.getFromLocation(loc.getLatitude(),
+						loc.getLongitude(), 1);
+			} catch (IOException e) {
+				e.printStackTrace();
+				// Update UI field with the exception.
+				// Message.obtain(mHandler, UPDATE_ADDRESS,
+				// e.toString()).sendToTarget();
+			}
+			if (addresses != null && addresses.size() > 0) {
+				Address address = addresses.get(0);
+				// Format the first line of address (if available), city, and
+				// country name.
+				String addressText = String.format(
+						"%s, %s, %s",
+						address.getMaxAddressLineIndex() > 0 ? address
+								.getAddressLine(0) : "", address.getLocality(),
+						address.getAdminArea());
+				// Update the UI via a message handler.
+				// Message.obtain(mHandler, UPDATE_ADDRESS,
+				// addressText).sendToTarget();
+				return address.getMaxAddressLineIndex() > 0 ? address
+						.getAddressLine(0) : "";
+
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(String s) {
+			String currentLocation = s;
+			String[] components = s.split(",");
+			currentCity = components[0];
+			String temp = components[1];
+			String[] tempy = temp.split("\\s+");
+			currentStateCode = tempy[1];
+			writeLocSharedPref();
+			fetchData();
+		}
+	}
 }
