@@ -50,13 +50,13 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 		HttpGet http;
 		if(type == 0){
 			Log.v("gps", "place: " + place);
-			//http = new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/hourly/q/"+state+"/"+place+".json");
-			http = new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/hourly/q/FL/Gainesville.json");
+			http = new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/hourly/q/"+state+"/"+place+".json");
+			//http = new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/hourly/q/FL/Gainesville.json");
 
 		}
 		else{
-			//http =  new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/forecast10day/q/"+state+"/"+place+".json");
-			http =  new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/forecast10day/q/FL/Gainesville.json");
+			http =  new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/forecast10day/q/"+state+"/"+place+".json");
+			//http =  new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/forecast10day/q/FL/Gainesville.json");
 			
 		}
 		

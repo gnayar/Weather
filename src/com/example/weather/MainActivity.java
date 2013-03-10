@@ -1,11 +1,20 @@
 package com.example.weather;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.Intent;
@@ -34,6 +43,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -44,10 +59,19 @@ import android.widget.Toast;
 import com.slidingmenu.lib.SlidingMenu;
 import com.slidingmenu.lib.app.SlidingActivity;
 
-public class MainActivity extends SlidingActivity implements LocationListener {
+public class MainActivity extends SlidingActivity implements LocationListener, OnItemClickListener {
 	private static final String DEBUG_TAG = "Motion";
 	private static final String WHERE_TAG = "Where";
 	public static final String PREFS_NAME = "LocationPrefs";
+	
+	//autocomplete api
+	private static final String LOG_TAG = "Autocomplete API";
+	private static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
+	private static final String TYPE_AUTOCOMPLETE = "/autocomplete";
+	private static final String OUT_JSON = "/json";
+	private static final String API_KEY = "AIzaSyC99uGV72z9HkApLazz-yux3yyzGKuhC9E";
+	
+	
 	String locationProvider = LocationManager.NETWORK_PROVIDER;
 
 	private GestureDetectorCompat mDetector;
@@ -150,6 +174,10 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			setUpGPS();
 		}
 		setUpLocationList();
+		
+		 AutoCompleteTextView autoCompView = (AutoCompleteTextView) findViewById(R.id.autocomplete);
+		 autoCompView.setAdapter(new PlacesAutoCompleteAdapter(this, R.layout.autocomplete_list_item));
+		 autoCompView.setOnItemClickListener(this);
 
 	}
 
@@ -191,6 +219,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	private void setUpLayoutVars() {
 		main = (LinearLayout) findViewById(R.id.main);
 		menu = (RelativeLayout) findViewById(R.id.menu);
+		
 	}
 
 	private void writeLocSharedPref(int latitude, int longitude) {
@@ -221,7 +250,9 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		currentCity = settings.getString("currentCity", " ");
 		currentStateCode = settings.getString("currentStateCode", " ");
 		CityState temp = new CityState(currentCity, currentStateCode);
-		places.add(temp);
+		if(!places.contains(temp)){
+			places.add(temp);
+		}
 		Log.d(WHERE_TAG, "Reading  " + currentCity);
 		Log.d(WHERE_TAG, "Reading  " + currentStateCode);
 
@@ -366,12 +397,24 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 	private void setUpLocationList() {
 		ListView locs = (ListView) findViewById(R.id.locations);
-		places.add(new CityState("Atlanta", "GA"));
-		places.add(new CityState("Boston", "MA"));
-		places.add(new CityState("Pittsburgh", "PA"));
-		places.add(new CityState("Tampa", "FL"));
 		adapter = new LocationAdapter(this, R.layout.location_row_item, places);
 		locs.setAdapter(adapter);
+		locs.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+            public boolean onItemLongClick(AdapterView<?> arg0, View v,
+                    int index, long arg3) {
+  			  CityState chosen = places.get(index);
+  			  Toast.makeText(context, chosen.city, Toast.LENGTH_SHORT).show();
+  			  places.remove(index);
+  			  adapter.notifyDataSetChanged();
+  			  places.add(0, chosen);
+  			  adapter.notifyDataSetChanged();
+  			  fetchData();
+                 
+                 
+                return true;
+            }
+}); 
 
 	}
 
@@ -1499,5 +1542,121 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 	public void setColorSet(int colorSet) {
 		this.colorSet = colorSet;
 	}
+	
+	private ArrayList<String> autocomplete(String input) {
+	    ArrayList<String> resultList = null;
+	    
+	    HttpURLConnection conn = null;
+	    StringBuilder jsonResults = new StringBuilder();
+	    try {
+	        StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_AUTOCOMPLETE + OUT_JSON);
+	        sb.append("?sensor=false&key=" + API_KEY);
+	        sb.append("&components=country:usa");
+	        sb.append("&input=" + URLEncoder.encode(input, "utf8"));
+	        
+	        URL url = new URL(sb.toString());
+	        conn = (HttpURLConnection) url.openConnection();
+	        InputStreamReader in = new InputStreamReader(conn.getInputStream());
+	        
+	        // Load the results into a StringBuilder
+	        int read;
+	        char[] buff = new char[1024];
+	        while ((read = in.read(buff)) != -1) {
+	            jsonResults.append(buff, 0, read);
+	        }
+	    } catch (MalformedURLException e) {
+	        Log.e(LOG_TAG, "Error processing Places API URL", e);
+	        return resultList;
+	    } catch (IOException e) {
+	        Log.e(LOG_TAG, "Error connecting to Places API", e);
+	        return resultList;
+	    } finally {
+	        if (conn != null) {
+	            conn.disconnect();
+	        }
+	    }
 
+	    try {
+	        // Create a JSON object hierarchy from the results
+	        JSONObject jsonObj = new JSONObject(jsonResults.toString());
+	        JSONArray predsJsonArray = jsonObj.getJSONArray("predictions");
+	        
+	        // Extract the Place descriptions from the results
+	        resultList = new ArrayList<String>(predsJsonArray.length());
+	        for (int i = 0; i < predsJsonArray.length(); i++) {
+	            resultList.add(predsJsonArray.getJSONObject(i).getString("description"));
+	        }
+	    } catch (JSONException e) {
+	        Log.e(LOG_TAG, "Cannot process JSON results", e);
+	    }
+	    
+	    return resultList;
+	}
+	
+	private class PlacesAutoCompleteAdapter extends ArrayAdapter<String> implements Filterable {
+	    private ArrayList<String> resultList;
+	    
+	    public PlacesAutoCompleteAdapter(Context context, int textViewResourceId) {
+	        super(context, textViewResourceId);
+	    }
+	    
+	    @Override
+	    public int getCount() {
+	        return resultList.size();
+	    }
+
+	    @Override
+	    public String getItem(int index) {
+	        return resultList.get(index);
+	    }
+
+	    @Override
+	    public Filter getFilter() {
+	        Filter filter = new Filter() {
+	            @Override
+	            protected FilterResults performFiltering(CharSequence constraint) {
+	                FilterResults filterResults = new FilterResults();
+	                if (constraint != null) {
+	                    // Retrieve the autocomplete results.
+	                    resultList = autocomplete(constraint.toString());
+	                    
+	                    // Assign the data to the FilterResults
+	                    filterResults.values = resultList;
+	                    filterResults.count = resultList.size();
+	                }
+	                return filterResults;
+	            }
+
+	            @Override
+	            protected void publishResults(CharSequence constraint, FilterResults results) {
+	                if (results != null && results.count > 0) {
+	                    notifyDataSetChanged();
+	                }
+	                else {
+	                    notifyDataSetInvalidated();
+	                }
+	            }};
+	        return filter;
+	    }
+	}
+	
+	  public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+		  if(view.getId() == R.id.locations){
+			  CityState chosen = places.get(position);
+			  Toast.makeText(this, chosen.city, Toast.LENGTH_SHORT).show();
+			  places.remove(position);
+			  adapter.notifyDataSetChanged();
+			  places.add(0, chosen);
+			  adapter.notifyDataSetChanged();
+			  fetchData();
+		  }
+		  else{
+	        String str = (String) adapterView.getItemAtPosition(position);
+	        String[] temp = str.split(",");
+	        Toast.makeText(this, temp[1], Toast.LENGTH_SHORT).show();
+	        CityState newLocation = new CityState(temp[0].trim(),temp[1].trim());
+	        places.add(newLocation);
+	        adapter.notifyDataSetChanged();
+		  }
+	    }
 }
