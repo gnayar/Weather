@@ -997,17 +997,19 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					// Log.d(DEBUG_TAG, "Found Info: "+time+"   Temp: " +
 					// temperature + " condition: " + condition);
 					TextView temperatureView = (TextView) findViewById(R.id.temperature);
-					try {
-						if (celsius) {
-							temperatureView.setText(Integer
-									.toString(temperature) + "C");
-						} else {
-							temperatureView.setText(Integer
-									.toString(temperature) + "F");
-						}
-					} catch (NullPointerException e) {
+					try{
+					if (celsius) {
+						temperatureView.setText(Integer.toString(temperature)
+								+ "C");
+					} else {
+						temperatureView.setText(Integer.toString(temperature)
+								+ "F");
+					}
+					}catch(NullPointerException e){
 						e.printStackTrace();
-						temperatureView.setText("F");
+						Log.e(DEBUG_TAG,"View id "+ Integer.valueOf(R.id.temperature));
+						temperatureView.setText(Integer.toString(temperature)
+								+ "F");
 					}
 					TextView windSpeed = (TextView) findViewById(R.id.windspeed);
 					windSpeed.setText(Integer.toString(wind) + "mph");

@@ -93,7 +93,9 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
     protected void onPostExecute(JSONObject Object){
     	if(type== 0){
     	((MainActivity)context).current = parse(Object);
-    	((MainActivity)context).weatherAtTime(0);
+    	if(!((MainActivity)context).inHours){
+    		((MainActivity)context).weatherAtTime(0);
+    	}
     	}
     	else if(type == 1){
     	((MainActivity)context).future = futureForecast(Object);
