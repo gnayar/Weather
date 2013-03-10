@@ -374,7 +374,12 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 			Log.d(DEBUG_TAG, "Looping: " + (item[7]));
 			Log.d(DEBUG_TAG, "Looping: " + forecastPicMatcher.get(item[7]));
 			if (forecastPicMatcher.get(item[7]) == null) {
-				if (conditionPicMatcher.get(item[7]) != null) {//if cant find in forecast map, check conditions map (more extensive)
+				if (conditionPicMatcher.get(item[7]) != null) {// if cant find
+																// in forecast
+																// map, check
+																// conditions
+																// map (more
+																// extensive)
 					temp = new Temperature(Integer.parseInt(item[0]),
 							Integer.parseInt(item[1]),
 							Integer.parseInt(item[3]),
@@ -382,7 +387,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 							Integer.parseInt(item[4]),
 							Integer.parseInt(item[5]), item[7], item[8],
 							conditionPicMatcher.get(item[7]), celsius);
-				} else {//if in neither map, display default cloud
+				} else {// if in neither map, display default cloud
 					temp = new Temperature(Integer.parseInt(item[0]),
 							Integer.parseInt(item[1]),
 							Integer.parseInt(item[3]),
@@ -391,7 +396,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 							Integer.parseInt(item[5]), item[7], item[8],
 							conditionPicMatcher.get("Cloudy"), celsius);
 				}
-			} else {//display if in forecast map
+			} else {// display if in forecast map
 				temp = new Temperature(Integer.parseInt(item[0]),
 						Integer.parseInt(item[1]), Integer.parseInt(item[3]),
 						Integer.parseInt(item[2]), Integer.parseInt(item[4]),
@@ -992,12 +997,17 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 					// Log.d(DEBUG_TAG, "Found Info: "+time+"   Temp: " +
 					// temperature + " condition: " + condition);
 					TextView temperatureView = (TextView) findViewById(R.id.temperature);
-					if (celsius) {
-						temperatureView.setText(Integer.toString(temperature)
-								+ "C");
-					} else {
-						temperatureView.setText(Integer.toString(temperature)
-								+ "F");
+					try {
+						if (celsius) {
+							temperatureView.setText(Integer
+									.toString(temperature) + "C");
+						} else {
+							temperatureView.setText(Integer
+									.toString(temperature) + "F");
+						}
+					} catch (NullPointerException e) {
+						e.printStackTrace();
+						temperatureView.setText("F");
 					}
 					TextView windSpeed = (TextView) findViewById(R.id.windspeed);
 					windSpeed.setText(Integer.toString(wind) + "mph");
