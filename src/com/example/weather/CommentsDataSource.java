@@ -85,6 +85,9 @@ public class CommentsDataSource {
     database.delete(MySQLiteHelper.TABLE_WEATHER, MySQLiteHelper.COLUMN_ID
         + " = " + id, null);
   }
+  
+  
+
  
 //  public List<Comment> getAllComments() {
 //    List<Comment> comments = new ArrayList<Comment>();

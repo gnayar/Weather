@@ -20,7 +20,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
   public static final String COLUMN_CONDITION = "condition";
   public static final String COLUMN_CURRENTHOUR = "currenthour";
   
-  private static final String DATABASE_NAME = "weather.db";
+  public static final String DATABASE_NAME = "weather.db";
   private static final int DATABASE_VERSION = 1;
  
   // Database creation sql statement

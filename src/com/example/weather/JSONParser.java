@@ -4,7 +4,8 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
- 
+import java.util.List;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -13,12 +14,11 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
- 
+
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.os.AsyncTask;
-import android.text.format.Time;
 import android.util.Log;
-import android.widget.Toast;
  
  
 // arraylist of string[] arrays 
@@ -49,10 +49,15 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 		HttpClient client = new DefaultHttpClient();
 		HttpGet http;
 		if(type == 0){
-			http = new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/hourly/q/"+state+"/"+place+".json");
+			Log.v("gps", "place: " + place);
+			//http = new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/hourly/q/"+state+"/"+place+".json");
+			http = new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/hourly/q/FL/Gainesville.json");
+
 		}
 		else{
-			http =  new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/forecast10day/q/"+state+"/"+place+".json");
+			//http =  new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/forecast10day/q/"+state+"/"+place+".json");
+			http =  new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/forecast10day/q/FL/Gainesville.json");
+			
 		}
 		
 		//will probably need to use a stringbuilder to generate the true url based on request
@@ -116,6 +121,25 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 			Log.v("http", "array made");
 			Log.v("http", "size of jsonarray is: " + allHours.length());
 			//from here on will surely be iterative
+			
+			//database set up before
+			//now store all this in the database of the main's context
+			CommentsDataSource datasource = new CommentsDataSource((MainActivity)context);
+			datasource.open();
+			
+			//first delete database
+			ContextWrapper wrapper = new ContextWrapper((MainActivity)context);
+			if( wrapper.deleteDatabase("weather.db")) {
+				Log.v("db", "Database was successfully deleted");
+			} else {
+				Log.v("db", "Database was not deleted");
+			}
+			
+			Log.v("db", "Opening and inserting");
+			
+
+			
+			
 			for(int i = 0; i < 24; i++) { //for 24 hours
 				JSONObject time = allHours.getJSONObject(i);
 			
@@ -138,10 +162,19 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 				data[6] = String.valueOf(fcttime.getInt("hour"));
 				conditions.add((String[])data.clone());
 			
-				
+				datasource.addWeather(data);
+				//this needs to loop for all conditions or use for loop ^^^
 			}
- 
- 
+			
+			Log.v("db", "Weather added");
+			
+			//DB TESTING
+			//CommentsDataSource datasource = new CommentsDataSource(this);
+//			List<String[]> test = datasource.getAllWeather();
+//			Log.v("db", "testing db");
+//			for(int i = 0; i < test.get(0).length; i++) {
+//				Log.v("db", test.get(0)[i]);
+//			}
 			
 			
 		} catch (Exception e) {

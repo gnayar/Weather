@@ -145,11 +145,15 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		setUpForecast();
 
-		setUpDataBase();
+		//setUpDataBase();
 
 		setUpGPS();
 
 		setUpLocationList();
+		
+		
+		
+		
 	}
 
 	public void setUpClock() {
@@ -311,7 +315,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		// String[7] test1 = { "200", "201", "202", "203", "204", "205", "206"};
 
-		datasource.addWeather(test0);
+		//datasource.addWeather(current.get(0));
 		Log.v("db", "Found weather data");
 		// datasource.createComment("TEST");
 		// datasource.createComment("TEST1");
@@ -345,6 +349,7 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 		try {
 			parser.execute("0", temp.city, temp.state);
 			parser2.execute("1", temp.city, temp.state);
+			
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -1445,15 +1450,21 @@ public class MainActivity extends SlidingActivity implements LocationListener {
 
 		@Override
 		protected void onPostExecute(String s) {
+			Log.v("gps", "s string is: " + s);
 			String currentLocation = s;
+			Log.v("gps", "currentlocation: " + currentLocation);
 			String[] components = s.split(",");
 			currentCity = components[0];
 			String temp = components[1];
 			String[] tempy = temp.split("\\s+");
 			currentStateCode = tempy[1];
+			
+			Log.v("gps", "current city: " + currentCity);
+			Log.v("gps", "current state code: " + currentStateCode);
 			writeLocSharedPref();
 			setUpLocationList();
 			fetchData();
+			
 		}
 	}
 
