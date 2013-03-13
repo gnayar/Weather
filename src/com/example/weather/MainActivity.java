@@ -417,7 +417,7 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
   			  places.add(0, chosen);
   			  adapter.notifyDataSetChanged();
   			  fetchData();
-                 
+              
                  
                 return true;
             }
@@ -976,6 +976,8 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 		if (gps) {
 			locationManager.requestLocationUpdates(provider, 400, 1000, this);
 		}
+		weatherAtTime(0);
+		setUpForecast();
 	}
 
 	/* Remove the locationlistener updates when Activity is paused */
@@ -1706,7 +1708,7 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 	}
 	
 	public void getSavedTemperatures(){//JOE READ!! this is where we generate 24 hour temp array if pulling weather from database. LOAD DATABASE HERE
-		
+		//Function only called if weather not downloaded today. Otherwise, function won't be called from onCreate
 		for(int i = 0;i<24;i++){
 //			Temperature t = new Temperature();
 //			t.chancePrecip = getPrecipFromDatabase;
