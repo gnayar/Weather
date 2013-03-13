@@ -1735,18 +1735,37 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 		}
 		
 		Log.v("db", "Finished inserting");
+		
 	}
 	
 	public void getSavedTemperatures(){//JOE READ!! this is where we generate 24 hour temp array if pulling weather from database. LOAD DATABASE HERE
 		//Function only called if weather not downloaded today. Otherwise, function won't be called from onCreate
-		for(int i = 0;i<24;i++){
-//			Temperature t = new Temperature();
-//			t.chancePrecip = getPrecipFromDatabase;
-//			t.desc = getConditionFromDatabase;
-//			t.temperature = getTemperatureFromDatabase;
-//			t.windSpeed = getWindSpeedFromDatabase;
-			//if you end up doing time
-			//t.dateTime  = getDateTimeFromDatabase
+		
+		File dbFile = new File("weather.db");
+		//check to see if db exists and if so delete it
+
+		if(dbFile.exists()) {
+			Log.v("db", "database exists so continue forward");
+
+			
+			
+			CommentsDataSource datasource = new CommentsDataSource(this);
+			datasource.open();
+			
+			
+			ArrayList<String[]> allWeather = (ArrayList) datasource.getAllWeather();
+			
+//			for(int i = 0;i<24;i++){
+//	//			Temperature t = new Temperature();
+//	//			t.chancePrecip = getPrecipFromDatabase;
+//	//			t.desc = getConditionFromDatabase;
+//	//			t.temperature = getTemperatureFromDatabase;
+//	//			t.windSpeed = getWindSpeedFromDatabase;
+//				//if you end up doing time
+//				//t.dateTime  = getDateTimegFromDatabase
+//			}
+		} else {
+			Log.v("db", "database does not exist and there is nothing to read");
 		}
 	}
 }
