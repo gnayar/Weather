@@ -1,5 +1,6 @@
 package com.example.weather;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -7,7 +8,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -1695,16 +1695,46 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 
 	public void setSaveCurrent(ArrayList<Temperature> temps) {//JOE READ!!!  This is where we return the 24 hour temp array. SAVE DATABASE HERE!!!
 		current = temps;
-		for(int i = 0; i<temps.size();i++){//this is already in order of hours, starting at the current hour block aka 1:30 am -> starts at 1 am- 2am block
-			Temperature t = current.get(i);
-			int currentTemperature = t.temperature;//temperature at time
-			int precip = Integer.parseInt(t.chancePrecip);//chance of precipitation - read in as a string or int, either way doesn't matter
-			String condition = t.desc;//current condition
-			int windspeed = Integer.parseInt(t.windSpeed);//current windspeed
-			//if you end up doing time
-			//int dateTime = t.dateTime;  NOTICE: If we don't do this, reminder to fix weatherAtTime method to not rely on datetime
+		
+		File dbFile = new File("weather.db");
+		//check to see if db exists and if so delete it
+
+		if(dbFile.exists()) {
+			Log.v("db", "database exists so deleting it");
+			this.deleteDatabase("weather.db");
+		} else {
+			Log.v("db", "database doesn't exists so just continue");
 		}
 		
+		CommentsDataSource datasource = new CommentsDataSource(this);
+		datasource.open();
+
+		
+		Log.v("db", "Inserting...");
+		
+		
+		for(int i = 0; i<temps.size();i++){//this is already in order of hours, starting at the current hour block aka 1:30 am -> starts at 1 am- 2am block
+			Temperature t = current.get(i);
+			String[] tempdb = new String[8];
+			tempdb[0] = String.valueOf(i); //just an id
+			tempdb[1] = String.valueOf(t.temperature);//temperature at time
+			tempdb[2] = String.valueOf((t.temperature - 32)/1.8f); //celsius here
+			tempdb[3] = String.valueOf(t.chancePrecip);//chance of precipitation - read in as a string or int, either way doesn't matter
+			tempdb[4] = t.windSpeed;//current windspeed
+			tempdb[5] = "default";
+			tempdb[6] = t.desc;//current condition
+			tempdb[7] = String.valueOf(t.dateTime);
+			
+			
+			
+			//if you end up doing time
+			//int dateTime = t.dateTime;  NOTICE: If we don't do this, reminder to fix weatherAtTime method to not rely on datetime
+			datasource.addWeather(tempdb);
+			
+			
+		}
+		
+		Log.v("db", "Finished inserting");
 	}
 	
 	public void getSavedTemperatures(){//JOE READ!! this is where we generate 24 hour temp array if pulling weather from database. LOAD DATABASE HERE
