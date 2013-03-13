@@ -1,256 +1,228 @@
 package com.example.weather;
- 
+
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.os.AsyncTask;
 import android.util.Log;
- 
- 
-// arraylist of string[] arrays 
-// string[] -> tempf, tempc, chance of rain, wind speed, wind direction, condition, current hour
-// just parseInt when you want the int values
- 
-//arraylist of those strings will be indexed appropriately to the hour
- 
- 
- 
+
 public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 	int type = 0;
 	Context context;
-	private final String API_KEY = "6421665c1fee1f47";
-	//my private generated key to access the weather api
-	//will be a part of the url to send/receive json requests
-	
+
 	public JSONParser() {
-		//always 34 because 24 hours weather and then 24 + n for n number of days (10)
 	}
-	
+
 	@Override
 	public JSONObject doInBackground(String... params) {
 		type = Integer.valueOf(params[0]);
-		String place = params[1];
-		String state = params[2];
+		
+
 		StringBuilder builder = new StringBuilder();
 		HttpClient client = new DefaultHttpClient();
 		HttpGet http;
-		if(type == 0){
-			Log.v("gps", "place: " + place);
-			http = new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/hourly/q/"+state+"/"+place+".json");
-			//http = new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/hourly/q/FL/Gainesville.json");
+		if (type == 0) {
+			String lat = params[1];
+			String lng = params[2];
+			http = new HttpGet(
+					
+					"http://i.wxbug.net/REST/Direct/GetForecastHourly.ashx?la="
+							+ lat+"&lo="+lng
+							+ "&ht=t&ht=cp&ht=ws&ht=d&api_key=qhm5e4wcjz3zc4rzy6va5p9j");
+		} else {
+			String state = params[1];
+			String place = params[2];
+			http = new HttpGet(
+					"http://api.wunderground.com/api/6421665c1fee1f47/forecast10day/q/"
+							+ state + "/" + place + ".json");
+			// http = new
+			// HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/forecast10day/q/FL/Gainesville.json");
 
 		}
-		else{
-			http =  new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/forecast10day/q/"+state+"/"+place+".json");
-			//http =  new HttpGet("http://api.wunderground.com/api/6421665c1fee1f47/forecast10day/q/FL/Gainesville.json");
-			
-		}
-		
-		//will probably need to use a stringbuilder to generate the true url based on request
+
 		try {
-			
-			//append the first set of strings
+
+			// append the first set of strings
 			HttpResponse response = client.execute(http);
 			HttpEntity entity = response.getEntity();
 			InputStream content = entity.getContent();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(content));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					content));
 			String data;
-			while((data = reader.readLine()) != null){
+			while ((data = reader.readLine()) != null) {
 				builder.append(data);
 			}
-			
- 
-			
+
 			data = builder.toString();
-			//Log.v("http", data);
+			// Log.v("http", data);
 			JSONObject obj = new JSONObject(data);
 			return obj;
-			
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.v("http", "Failed to download JSON");
 			return null;
 		}
-		
-	}
-	
-	 
-    public void setContext(Context temp){
-    	this.context = temp;
-    }
-	
-    @Override
-    protected void onPostExecute(JSONObject Object){
-    	if(type== 0){
-    	((MainActivity)context).current = parse(Object);
-    	if(!((MainActivity)context).inHours){
-    		((MainActivity)context).weatherAtTime(0);
-    	}
-    	}
-    	else if(type == 1){
-    	((MainActivity)context).future = futureForecast(Object);
-    	((MainActivity)context).setUpForecast();
-    	}
-    }
-	
-	public ArrayList<String[]> parse(JSONObject obj) {
-		String[] data = new String[7]; //will always contain 7 values
-		ArrayList<String[]> conditions = new ArrayList<String[]>(24);
- 
-		//first need to create a jsonobject out of the string
-		try {
-			//Log.v("http", jsonString);
-			//JSONObject obj = new JSONObject(jsonString);
-			Log.v("http", "created json object");
-			JSONArray allHours = obj.getJSONArray("hourly_forecast");
-			Log.v("http", "array made");
-			Log.v("http", "size of jsonarray is: " + allHours.length());
-			//from here on will surely be iterative
-			
-			//database set up before
-			//now store all this in the database of the main's context
-			CommentsDataSource datasource = new CommentsDataSource((MainActivity)context);
-			datasource.open();
-			
-			//first delete database
-			ContextWrapper wrapper = new ContextWrapper((MainActivity)context);
-			if( wrapper.deleteDatabase("weather.db")) {
-				Log.v("db", "Database was successfully deleted");
-			} else {
-				Log.v("db", "Database was not deleted");
-			}
-			
-			Log.v("db", "Opening and inserting");
-			
 
-			
-			
-			for(int i = 0; i < 24; i++) { //for 24 hours
-				JSONObject time = allHours.getJSONObject(i);
-			
-				//Log.v("http", time.toString());
- 
-				//***NOTE
-				//NEED TO PARSE THE ACTUAL INT VALUES FROM THIS. I KNOW I AM JUST DUPLICATING
-			
-				JSONObject temporary_temperature = time.getJSONObject("temp");
-				JSONObject temp_wind = time.getJSONObject("wspd");
-				JSONObject temp_winddir = time.getJSONObject("wdir");
-				JSONObject fcttime = time.getJSONObject("FCTTIME");
-						
-				data[0] = String.valueOf(temporary_temperature.getInt("english"));
-				data[1] = String.valueOf(temporary_temperature.getInt("metric"));
-				data[2] = String.valueOf(time.getInt("pop"));
-				data[3] = String.valueOf(temp_wind.getInt("english")); //LET ME KNOW IF YOU WANT METRIC -> CHANGE KEY TO metric
-				data[4] = String.valueOf(temp_winddir.getInt("degrees")); //in degrees so easier to bound and choose icon
-				data[5] = time.getString("condition");
-				data[6] = String.valueOf(fcttime.getInt("hour"));
-				conditions.add((String[])data.clone());
-			
-				datasource.addWeather(data);
-				//this needs to loop for all conditions or use for loop ^^^
-			}
-			
-			Log.v("db", "Weather added");
-			
-			//DB TESTING
-			//CommentsDataSource datasource = new CommentsDataSource(this);
-//			List<String[]> test = datasource.getAllWeather();
-//			Log.v("db", "testing db");
-//			for(int i = 0; i < test.get(0).length; i++) {
-//				Log.v("db", test.get(0)[i]);
-//			}
-			
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			Log.v("http", "failed to parse");
-		}
-		
-		
-		
-		return conditions;
 	}
-	
-	
-	
-	
+
+	public void setContext(Context temp) {
+		this.context = temp;
+	}
+
+	@Override
+	protected void onPostExecute(JSONObject Object) {
+		if (type == 0) {
+			ObjectMapper mapper = new ObjectMapper();
+			ArrayList<Temperature> temps = new ArrayList<Temperature>();
+			JSONArray allHours = new JSONArray();
+			int k = 0;
+			try {
+				allHours = Object.getJSONArray("forecastHourlyList");
+			} catch (JSONException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			for (int i = 0; i < allHours.length(); i++) {
+
+				try {
+					JSONObject temperature = allHours.getJSONObject(i);
+					String temperatureString = temperature.toString();
+					Temperature temp = mapper.readValue(temperatureString,
+							Temperature.class);
+					Date dateOfTemp = temp.toNormalTime(temp.dateTime);
+					Date now = new Date();
+					boolean validTime = checkDates(now, dateOfTemp);
+					if (validTime) {
+						if (k < 24) {
+							temps.add(temp);
+							Log.d("jackson", dateOfTemp.getHours()+" day" +dateOfTemp.getDate());
+							k++;
+						}
+
+					}
+
+				} catch (JsonParseException e) {
+					Log.d("jackson", "failed JsonParse");
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (JsonMappingException e) {
+					Log.d("jackson", "failed JsonMappng");
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					Log.d("jackson", "failedIO");
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			// Code for processing weather data
+			((MainActivity)context).setSaveCurrent(temps);
+	    	if(!((MainActivity)context).inHours){
+	    		((MainActivity)context).weatherAtTime(0);
+	    	}
+		} else if (type == 1) {
+			((MainActivity) context).future = futureForecast(Object);
+			((MainActivity) context).setUpForecast();
+
+		}
+	}
+
+	private boolean checkDates(Date now, Date dateOfTemp) {
+		if (dateOfTemp.after(now)) {
+			return true;
+		}
+		if(dateOfTemp.getHours() == now.getHours()){
+			return true;
+		}
+		return false;
+	}
+
 	public ArrayList<String[]> futureForecast(JSONObject obj) {
-		ArrayList<String[]> forecast = new ArrayList<String[]>(); //10 days
+		ArrayList<String[]> forecast = new ArrayList<String[]>(); // 10 days
 		String[] data;
-		
-		//so we have our 24 hour and want to retreive the 10 day forecast
-		
+
+		// so we have our 24 hour and want to retreive the 10 day forecast
+
 		try {
 			Log.v("http", "beginning forecast json parsing");
 			JSONObject JSONforecast = obj.getJSONObject("forecast");
-			//Log.v("http", JSONforecast.toString());
-			JSONObject txtforecastday = JSONforecast.getJSONObject("simpleforecast");
-			//Log.v("http", txtforecastday.toString());
-			
-			//JSONObject simple = txtforecastday.getJSONObject("simpleforecast");
-			
+			// Log.v("http", JSONforecast.toString());
+			JSONObject txtforecastday = JSONforecast
+					.getJSONObject("simpleforecast");
+			// Log.v("http", txtforecastday.toString());
+
+			// JSONObject simple =
+			// txtforecastday.getJSONObject("simpleforecast");
+
 			JSONArray forecasts = txtforecastday.getJSONArray("forecastday");
 			Log.v("http", "size of JSON forecasts: " + forecasts.length());
-			
-			for(int i = 0; i < forecasts.length(); i++) {
+
+			for (int i = 0; i < forecasts.length(); i++) {
 				JSONObject current = forecasts.getJSONObject(i);
-				// string[] -> tempfH, tempfL, tempcH, tempcH, chance of rain, wind speed, wind direction, condition, current day, am/pm
+				// string[] -> tempfH, tempfL, tempcH, tempcH, chance of rain,
+				// wind speed, wind direction, condition, current day, am/pm
 				data = new String[10];
-				
+
 				JSONObject low = current.getJSONObject("low");
 				JSONObject high = current.getJSONObject("high");
 				JSONObject wind = current.getJSONObject("avewind");
 				JSONObject date = current.getJSONObject("date");
-				//Log.v("http", date.toString());
-				
-				//highs and lows
+				// Log.v("http", date.toString());
+
+				// highs and lows
 				data[0] = high.getString("fahrenheit");
 				data[1] = low.getString("fahrenheit");
 				data[2] = high.getString("celsius");
 				data[3] = low.getString("celsius");
-				//chance of rain
+				// chance of rain
 				data[4] = String.valueOf(current.getInt("pop"));
-				//wind and windw dir
-				data[5] = String.valueOf(wind.getInt("mph")); //need to add km/h 
-				data[6] = String.valueOf(wind.getInt("degrees")); //degree format for direction
-				//conditions
+				// wind and windw dir
+				data[5] = String.valueOf(wind.getInt("mph")); // need to add
+																// km/h
+				data[6] = String.valueOf(wind.getInt("degrees")); // degree
+																	// format
+																	// for
+																	// direction
+				// conditions
 				data[7] = current.getString("conditions");
-				//current day
+				// current day
 				data[8] = date.getString("weekday");
 				data[9] = date.getString("ampm");
 				Log.v("http", data[7]);
 
-				
-				forecast.add((String[])data.clone());
-				
-				
+				forecast.add((String[]) data.clone());
+
 			}
 			return forecast;
- 
+
 		} catch (JSONException e) {
 			Log.v("http", "Failed to parse forecast obj");
 			e.printStackTrace();
 			return forecast;
- 
+
 		}
-		
-		
+
 	}
-	
+
 }

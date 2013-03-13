@@ -20,14 +20,14 @@ import android.widget.Toast;
 import android.app.Application;
 
 
-public class ForecastAdapter extends ArrayAdapter<Temperature> {
+public class ForecastAdapter extends ArrayAdapter<Forecast> {
 	
 	private int resource;
 	private LayoutInflater inflater;
 	private Context context;
 	
 	public ForecastAdapter(Context ctx, int textViewResourceId,
-			ArrayList<Temperature> temps) {
+			ArrayList<Forecast> temps) {
 		super(ctx, textViewResourceId, temps);
 		
 		
@@ -39,7 +39,7 @@ public class ForecastAdapter extends ArrayAdapter<Temperature> {
 	public View getView (final int position, View convertView, ViewGroup parent){
 		
 		convertView = (RelativeLayout) inflater.inflate(resource,  null);
-		final Temperature temp = getItem(position);
+		final Forecast temp = getItem(position);
 		ImageView condition = (ImageView) convertView.findViewById(R.id.condition_pic);
 		condition.setBackgroundResource(temp.imageResourceID);
 		TextView title = (TextView) convertView.findViewById(R.id.day_forecast);
@@ -66,7 +66,7 @@ public class ForecastAdapter extends ArrayAdapter<Temperature> {
 	
 	
 	
-	public void refreshTemps(ArrayList<Temperature> inputTemps) {
+	public void refreshTemps(ArrayList<Forecast> inputTemps) {
 		this.clear();
 		for(int i =0; i < inputTemps.size(); i++) {
 			this.add(inputTemps.get(i));

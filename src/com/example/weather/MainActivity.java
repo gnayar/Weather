@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -82,7 +83,7 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 	int screenHeight, screenWidth;
 	public int colorSet;
 
-	ArrayList<String[]> current = new ArrayList<String[]>();
+	ArrayList<Temperature> current = new ArrayList<Temperature>();
 	ArrayList<String[]> future = new ArrayList<String[]>();
 	Map<String, Integer> conditionPicMatcher;
 	Map<String, Integer> forecastPicMatcher;
@@ -142,13 +143,9 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 		setContentView(R.layout.activity_main);
 		setBehindContentView(R.layout.menu);
 		context = this;
-
-		SharedPreferences sharedPref = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		celsius = sharedPref.getBoolean("temp_scale", false);
-		gps = sharedPref.getBoolean("gps", true);
-		mDetector = new GestureDetectorCompat(this, new MyGestureListener());
-
+		
+		loadInitialSharedPrefs();
+		
 		setUpLayoutVars();
 
 		setUpSlidingMenu();
@@ -179,6 +176,15 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 		 autoCompView.setAdapter(new PlacesAutoCompleteAdapter(this, R.layout.autocomplete_list_item));
 		 autoCompView.setOnItemClickListener(this);
 
+	}
+
+	private void loadInitialSharedPrefs() {
+		SharedPreferences sharedPref = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		celsius = sharedPref.getBoolean("temp_scale", false);
+		gps = sharedPref.getBoolean("gps", true);
+		mDetector = new GestureDetectorCompat(this, new MyGestureListener());
+		
 	}
 
 	public void setUpClock() {
@@ -249,7 +255,7 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 		oldLong = settings.getInt("long", 0);
 		currentCity = settings.getString("currentCity", " ");
 		currentStateCode = settings.getString("currentStateCode", " ");
-		CityState temp = new CityState(currentCity, currentStateCode);
+		CityState temp = new CityState(currentCity, currentStateCode, oldLat, oldLong);
 		if(!places.contains(temp)){
 			places.add(temp);
 		}
@@ -374,14 +380,15 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 		Log.v("http", "parser attempting");
 		// ArrayList<String> testArray;
 		CityState temp = places.get(0);
-		try {
-			parser.execute("0", temp.city, temp.state);
-			parser2.execute("1", temp.city, temp.state);
+		try {//sent in type, lat/state,long/place
+			parser.execute("0", ""+temp.lat,""+temp.lon);
+			parser2.execute("1", temp.state, temp.city);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
 
 	}
 
@@ -419,10 +426,10 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 	}
 
 	public void setUpForecast() {
-		ArrayList<Temperature> temps = new ArrayList<Temperature>();
+		ArrayList<Forecast> temps = new ArrayList<Forecast>();
 		for (int i = 0; i < future.size(); i++) {
 			String[] item = future.get(i);
-			Temperature temp;
+			Forecast temp;
 			Log.d(DEBUG_TAG, "Looping: " + (item[7]));
 			Log.d(DEBUG_TAG, "Looping: " + forecastPicMatcher.get(item[7]));
 			if (forecastPicMatcher.get(item[7]) == null) {
@@ -432,7 +439,7 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 																// conditions
 																// map (more
 																// extensive)
-					temp = new Temperature(Integer.parseInt(item[0]),
+					temp = new Forecast(Integer.parseInt(item[0]),
 							Integer.parseInt(item[1]),
 							Integer.parseInt(item[3]),
 							Integer.parseInt(item[2]),
@@ -440,7 +447,7 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 							Integer.parseInt(item[5]), item[7], item[8],
 							conditionPicMatcher.get(item[7]), celsius);
 				} else {// if in neither map, display default cloud
-					temp = new Temperature(Integer.parseInt(item[0]),
+					temp = new Forecast(Integer.parseInt(item[0]),
 							Integer.parseInt(item[1]),
 							Integer.parseInt(item[3]),
 							Integer.parseInt(item[2]),
@@ -449,7 +456,7 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 							conditionPicMatcher.get("Cloudy"), celsius);
 				}
 			} else {// display if in forecast map
-				temp = new Temperature(Integer.parseInt(item[0]),
+				temp = new Forecast(Integer.parseInt(item[0]),
 						Integer.parseInt(item[1]), Integer.parseInt(item[3]),
 						Integer.parseInt(item[2]), Integer.parseInt(item[4]),
 						Integer.parseInt(item[5]), item[7], item[8],
@@ -655,10 +662,10 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 
 				double d = Math.sqrt(dX + dY);
 				// Log.d(DEBUG_TAG, Double.toString(d));
-
+				TextView hoursTillShown = (TextView) findViewById(R.id.how_many_hours);
 				if (d > 90) {
 					int hoursAdded = calculateClockAngle(angle);
-					TextView hoursTillShown = (TextView) findViewById(R.id.how_many_hours);
+					
 					hoursTillShown.setText(hoursAdded + " Hours Later");
 					if (hoursAdded == 1) {
 						hoursTillShown.setText(hoursAdded + " Hour Later");
@@ -667,6 +674,7 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 					internalTime.minute = 0;
 				} else {
 					internalTime.setToNow();
+					hoursTillShown.setText("Current");
 
 				}
 				internalToDisplayTime();
@@ -1036,23 +1044,23 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 			lookupHour -= 24;
 		for (int i = 0; i < current.size(); i++) {
 
-			String[] temp = current.get(i);
-			int time = Integer.parseInt(temp[6]);
+			Temperature temp = current.get(i);
+			int time = temp.toNormalTime(temp.dateTime).getHours();
 
 			// Log.d(DEBUG_TAG, "Looping: " +time);
 			if (time == lookupHour) {
 				main = (LinearLayout) findViewById(R.id.main);
 				int temperature = 0;
 				if (celsius) {
-					temperature = Integer.parseInt(temp[1]);
+					temperature = (int) ((temp.temperature - 32)/(1.8));
 
 				} else if (!celsius) {
-					temperature = Integer.parseInt(temp[0]);
+					temperature = (int)temp.temperature;
 
 				}
-				int wind = Integer.parseInt(temp[3]);
-				int precip = Integer.parseInt(temp[2]);
-				String condition = temp[5];
+				String wind = temp.windSpeed;
+				String precip = temp.chancePrecip;
+				String condition = temp.desc;
 				if (type == 0) {
 					// Log.d(DEBUG_TAG, "Found Info: "+time+"   Temp: " +
 					// temperature + " condition: " + condition);
@@ -1073,10 +1081,9 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 								+ "F");
 					}
 					TextView windSpeed = (TextView) findViewById(R.id.windspeed);
-					windSpeed.setText(Integer.toString(wind) + "mph");
+					windSpeed.setText(wind + "mph");
 					TextView precipChance = (TextView) findViewById(R.id.precip);
-					precipChance.setText(Integer.toString(precip) + "%");
-					Log.d(DEBUG_TAG, "Precip: " + Integer.toString(precip));
+					precipChance.setText(precip + "%");
 					TextView conditionView = (TextView) findViewById(R.id.condition);
 					conditionView.setText(condition);
 					ImageView weatherIcon = (ImageView) findViewById(R.id.weatherIcon);
@@ -1109,7 +1116,7 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 								+ "C");
 					}
 					TextView precipChance = (TextView) findViewById(R.id.precip_chooser);
-					precipChance.setText(Integer.toString(precip) + "%");
+					precipChance.setText(precip + "%");
 					int color = craftColors(60, temperature, !celsius);
 					temperatureView.setTextColor(color);
 					clockDrawn.color = color;
@@ -1180,7 +1187,13 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 			builder.append("#0000");
 			builder.append(Integer.toHexString(blue));
 			Log.v("temp", "builder string: " + builder.toString());
-			int color = Color.parseColor(builder.toString());
+			int color;	
+			try{
+				color = Color.parseColor(builder.toString());
+			}catch (IllegalArgumentException e) {
+				color = (0xFF33B5E5);
+			}
+			
 			return color;
 
 		} else {
@@ -1190,7 +1203,7 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 	}
 
 	// Maps stuff
-	public void setUpMap() {
+	public void setUpMap() {//NOTICE: NEED TO ADD NEW VARIABLES FROM NEW API
 		conditionPicMatcher = new HashMap<String, Integer>();
 		forecastPicMatcher = new HashMap<String, Integer>();
 
@@ -1641,22 +1654,67 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 	}
 	
 	  public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-		  if(view.getId() == R.id.locations){
-			  CityState chosen = places.get(position);
-			  Toast.makeText(this, chosen.city, Toast.LENGTH_SHORT).show();
-			  places.remove(position);
-			  adapter.notifyDataSetChanged();
-			  places.add(0, chosen);
-			  adapter.notifyDataSetChanged();
-			  fetchData();
-		  }
-		  else{
+		
 	        String str = (String) adapterView.getItemAtPosition(position);
 	        String[] temp = str.split(",");
 	        Toast.makeText(this, temp[1], Toast.LENGTH_SHORT).show();
 	        CityState newLocation = new CityState(temp[0].trim(),temp[1].trim());
-	        places.add(newLocation);
+	        CityState addLocation = getLatAndLong(str, newLocation);
+	        places.add(addLocation);
 	        adapter.notifyDataSetChanged();
-		  }
+		  
 	    }
+	  
+	  
+	  public CityState getLatAndLong(String searchedAddress, CityState target){
+
+		    Geocoder coder = new Geocoder(this);
+		    List<Address> address;
+		    try 
+		    {
+		        address = coder.getFromLocationName(searchedAddress,5);
+		        if (address == null) {
+		            Log.d("getCord", "############Address not correct #########");
+		        }
+		        Address location = address.get(0);
+
+		        Log.d("getCord", "Address Latitude : "+ location.getLatitude() + "Address Longitude : "+ location.getLongitude());
+		        target.lat = location.getLatitude();
+		        target.lon = location.getLongitude();
+		        return target;
+
+		    }
+		    catch(Exception e)
+		    {
+		        Log.d("getCord", "MY_ERROR : ############Address Not Found");
+		        return null;
+		    }
+		}
+
+	public void setSaveCurrent(ArrayList<Temperature> temps) {//JOE READ!!!  This is where we return the 24 hour temp array. SAVE DATABASE HERE!!!
+		current = temps;
+		for(int i = 0; i<temps.size();i++){//this is already in order of hours, starting at the current hour block aka 1:30 am -> starts at 1 am- 2am block
+			Temperature t = current.get(i);
+			int currentTemperature = t.temperature;//temperature at time
+			int precip = Integer.parseInt(t.chancePrecip);//chance of precipitation - read in as a string or int, either way doesn't matter
+			String condition = t.desc;//current condition
+			int windspeed = Integer.parseInt(t.windSpeed);//current windspeed
+			//if you end up doing time
+			//int dateTime = t.dateTime;  NOTICE: If we don't do this, reminder to fix weatherAtTime method to not rely on datetime
+		}
+		
+	}
+	
+	public void getSavedTemperatures(){//JOE READ!! this is where we generate 24 hour temp array if pulling weather from database. LOAD DATABASE HERE
+		
+		for(int i = 0;i<24;i++){
+//			Temperature t = new Temperature();
+//			t.chancePrecip = getPrecipFromDatabase;
+//			t.desc = getConditionFromDatabase;
+//			t.temperature = getTemperatureFromDatabase;
+//			t.windSpeed = getWindSpeedFromDatabase;
+			//if you end up doing time
+			//t.dateTime  = getDateTimeFromDatabase
+		}
+	}
 }

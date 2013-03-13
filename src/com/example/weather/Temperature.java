@@ -1,100 +1,123 @@
 package com.example.weather;
 
-import java.util.Map;
+import java.util.Date;
 
-public class Temperature{
-	int tempFHigh;
-	int tempFLow;
-	int tempCLow;
-	int tempCHigh;
-	int precip;
-	int windSpeed;
-	String condition;
-	String day;
-	int imageResourceID;
-	boolean celsius;
+public class Temperature {
+	int temperature;
+	String desc;
+	long dateTime;
+	String chancePrecip;
+	String icon;
+	String windSpeed;
+	String humidity;
+	String skyCover;
+	String feelsLike;
+	String feelsLikeLabel;
+	String windDir;
+	String dewPoint;
 	
 	public Temperature(){
 	}
 
-	public Temperature(int tempFHigh, int tempFLow, int tempCLow,
-			int tempCHigh, int precip, int windSpeed, String condition,
-			String day, int resourceID, boolean celsius) {
-		super();
-		this.tempFHigh = tempFHigh;
-		this.tempFLow = tempFLow;
-		this.tempCLow = tempCLow;
-		this.tempCHigh = tempCHigh;
-		this.precip = precip;
-		this.windSpeed = windSpeed;
-		this.condition = condition;
-		this.day = day;
-		this.imageResourceID = resourceID;
-		this.celsius = celsius;
-		
+	public int getTemperature() {
+		return temperature;
 	}
 
-	public int getTempFHigh() {
-		return tempFHigh;
+	public void setTemperature(int temperature) {
+		this.temperature = temperature;
 	}
 
-	public void setTempFHigh(int tempFHigh) {
-		this.tempFHigh = tempFHigh;
+	public String getDesc() {
+		return desc;
 	}
 
-	public int getTempFLow() {
-		return tempFLow;
+	public void setDesc(String desc) {
+		this.desc = desc;
 	}
 
-	public void setTempFLow(int tempFLow) {
-		this.tempFLow = tempFLow;
+	public long getDateTime() {
+		return dateTime;
 	}
 
-	public int getTempCLow() {
-		return tempCLow;
+	public void setDateTime(long dateTime) {
+		this.dateTime = dateTime;
 	}
 
-	public void setTempCLow(int tempCLow) {
-		this.tempCLow = tempCLow;
+	public String getChancePrecip() {
+		return chancePrecip;
 	}
 
-	public int getTempCHigh() {
-		return tempCHigh;
+	public void setChancePrecip(String chancePrecip) {
+		this.chancePrecip = chancePrecip;
 	}
 
-	public void setTempCHigh(int tempCHigh) {
-		this.tempCHigh = tempCHigh;
+	public String getIcon() {
+		return icon;
 	}
 
-	public int getPrecip() {
-		return precip;
+	public void setIcon(String icon) {
+		this.icon = icon;
 	}
 
-	public void setPrecip(int precip) {
-		this.precip = precip;
-	}
-
-	public int getWindSpeed() {
+	public String getWindSpeed() {
 		return windSpeed;
 	}
 
-	public void setWindSpeed(int windSpeed) {
+	public void setWindSpeed(String windSpeed) {
 		this.windSpeed = windSpeed;
 	}
 
-	public String getCondition() {
-		return condition;
+	public String getHumidity() {
+		return humidity;
 	}
 
-	public void setCondition(String condition) {
-		this.condition = condition;
+	public void setHumidity(String humidity) {
+		this.humidity = humidity;
 	}
 
-	public String getDay() {
-		return day;
+	public String getSkyCover() {
+		return skyCover;
 	}
 
-	public void setDay(String day) {
-		this.day = day;
+	public void setSkyCover(String skyCover) {
+		this.skyCover = skyCover;
 	}
+
+	public String getFeelsLike() {
+		return feelsLike;
+	}
+
+	public void setFeelsLike(String feelsLike) {
+		this.feelsLike = feelsLike;
+	}
+
+	public String getFeelsLikeLabel() {
+		return feelsLikeLabel;
+	}
+
+	public void setFeelsLikeLabel(String feelsLikeLabel) {
+		this.feelsLikeLabel = feelsLikeLabel;
+	}
+
+	public String getWindDir() {
+		return windDir;
+	}
+
+	public void setWindDir(String windDir) {
+		this.windDir = windDir;
+	}
+
+	public String getDewPoint() {
+		return dewPoint;
+	}
+
+	public void setDewPoint(String dewPoint) {
+		this.dewPoint = dewPoint;
+	}
+	
+	public Date toNormalTime(long unixTime){
+		return new Date(unixTime);
+		
+	}
+	
 }
