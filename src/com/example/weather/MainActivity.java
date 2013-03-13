@@ -1734,8 +1734,40 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 			
 		}
 		
+		/* GAUTAM READ IF YOU WANNA USE THE FORECAST DATABASE: HOW TO STORE + RECEIVE 
+		 
+		 .....
+		
+		//just some forecast db debugging
+		Log.v("db", "trying to insert into forecast data");
+		String[] nothing = new String[10];
+		nothing[0] = "testtest0";
+		nothing[1] = "testtest1";
+		nothing[2] = "testtest2";
+		nothing[3] = "testtest3";
+		nothing[4] = "testtest4";
+		nothing[5] = "testtest5";
+		nothing[6] = "testtest6";
+		nothing[7] = "testtest7";
+		nothing[8] = "testtest8";
+		nothing[9] = "testtest9";
+		
+		datasource.addForecast(nothing);
+
+		Log.v("db", "done testing insertion of forecast db");
+		Log.v("db", "now trying to retreive that data");
+		List<String[]> test = datasource.getAllForecasts();
+		Log.v("db", "size of test list: " + test.size());
+		for(int i = 0; i < test.get(0).length; i++) {
+			Log.v("db", i + " -> " + test.get(0)[i]);
+		}
+		
+		
+		
+		
 		Log.v("db", "Finished inserting");
 		
+		*/
 	}
 	
 	public void getSavedTemperatures(){//JOE READ!! this is where we generate 24 hour temp array if pulling weather from database. LOAD DATABASE HERE
