@@ -1754,6 +1754,22 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 			
 			
 			ArrayList<String[]> allWeather = (ArrayList) datasource.getAllWeather();
+			ArrayList<String[]> fin = new ArrayList<String[]>();
+			
+			for(int i = 0; i < allWeather.size(); i++) {
+				String[] temp = new String[7]; //because i have a primary key in the db, make it so we have concurrent indices
+				temp[0] = allWeather.get(i)[1];
+				temp[1] = allWeather.get(i)[2];
+				temp[2] = allWeather.get(i)[3];
+				temp[3] = allWeather.get(i)[4];
+				temp[4] = allWeather.get(i)[5];
+				temp[5] = allWeather.get(i)[6];
+				temp[6] = allWeather.get(i)[7];
+				fin.add(temp);
+			}
+			
+			//hence fin has the arraylist you want! return that maybe? or set to the most up-to-date arraylist
+			
 			
 //			for(int i = 0;i<24;i++){
 //	//			Temperature t = new Temperature();
