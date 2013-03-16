@@ -1773,10 +1773,12 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 	public void getSavedTemperatures(){//JOE READ!! this is where we generate 24 hour temp array if pulling weather from database. LOAD DATABASE HERE
 		//Function only called if weather not downloaded today. Otherwise, function won't be called from onCreate
 		
-		File dbFile = new File("weather.db");
+		Log.v("db", "made it to getSavedTemperatures");
+		
+		//File dbFile = new File("weather.db");
 		//check to see if db exists and if so delete it
 
-		if(dbFile.exists()) {
+		try {
 			Log.v("db", "database exists so continue forward");
 
 			
@@ -1790,17 +1792,24 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 			
 			for(int i = 0; i < allWeather.size(); i++) {
 				String[] temp = new String[7]; //because i have a primary key in the db, make it so we have concurrent indices
-				temp[0] = allWeather.get(i)[1];
-				temp[1] = allWeather.get(i)[2];
-				temp[2] = allWeather.get(i)[3];
-				temp[3] = allWeather.get(i)[4];
-				temp[4] = allWeather.get(i)[5];
-				temp[5] = allWeather.get(i)[6];
-				temp[6] = allWeather.get(i)[7];
+				temp[6] = allWeather.get(i)[0];
+				temp[0] = allWeather.get(i)[2];
+				temp[1] = allWeather.get(i)[3];
+				temp[2] = allWeather.get(i)[4];
+				temp[3] = allWeather.get(i)[5];
+				temp[4] = allWeather.get(i)[6];
+				temp[5] = allWeather.get(i)[7];
+				//temp[7] = allWeather.get(i)[8];
 				fin.add(temp);
 			}
 			
 			//hence fin has the arraylist you want! return that maybe? or set to the most up-to-date arraylist
+			
+			
+			
+			for(int i = 0; i < fin.get(0).length; i++) {
+				Log.v("db", i + ": " + fin.get(0)[i]);
+			}
 			
 			
 //			for(int i = 0;i<24;i++){
@@ -1812,8 +1821,9 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 //				//if you end up doing time
 //				//t.dateTime  = getDateTimegFromDatabase
 //			}
-		} else {
+		} catch (Exception e) {
 			Log.v("db", "database does not exist and there is nothing to read");
+			e.printStackTrace();
 		}
 	}
 }

@@ -141,6 +141,8 @@ public class JSONParser extends AsyncTask<String, Integer, JSONObject> {
 	    	if(!((MainActivity)context).inHours){
 	    		((MainActivity)context).weatherAtTime(0);
 	    	}
+			((MainActivity)context).getSavedTemperatures();
+
 		} else if (type == 1) {
 			((MainActivity) context).future = futureForecast(Object);
 			((MainActivity) context).setUpForecast();

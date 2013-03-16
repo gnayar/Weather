@@ -62,6 +62,9 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 		  + COLUMN_WINDDIR + " TEXT NOT NULL, "
 		  + COLUMN_CONDITION + " TEXT NOT NULL, "
 		  + COLUMN_CURRENTHOUR + " TEXT NOT NULL);";
+  
+
+	 
  
   public MySQLiteHelper(Context context) {
     super(context, DATABASE_NAME, null, DATABASE_VERSION);
