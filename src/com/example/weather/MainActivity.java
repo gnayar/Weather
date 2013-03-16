@@ -1097,11 +1097,11 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 					}
 
 					if (temperature <= 50) {
-						colorSet = craftColors(60, temperature, !celsius);
+						colorSet = craftColors(40, temperature, !celsius);
 						main.setBackgroundColor(colorSet);
 						// hours.setBackgroundColor(0xFF33B5E5);
 					} else if (temperature > 50) {
-						colorSet = craftColors(60, temperature, !celsius);
+						colorSet = craftColors(40, temperature, !celsius);
 						main.setBackgroundColor(colorSet);
 						// hours.setBackgroundColor(0xFFFF9900);
 					}
@@ -1119,7 +1119,7 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 					}
 					TextView precipChance = (TextView) findViewById(R.id.precip_chooser);
 					precipChance.setText(precip + "%");
-					int color = craftColors(60, temperature, !celsius);
+					int color = craftColors(40, temperature, !celsius);
 					temperatureView.setTextColor(color);
 					clockDrawn.color = color;
 					clockDrawn.invalidate();
@@ -1150,25 +1150,68 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 		}
 
 		if (current >= threshold) {
+			Log.v("colorsList", current + "");
 			// here we are greater than the threshold so will be a red color
 			int increment = 255 / (40 - threshold);
 			int red = 255;
+			int green = 0;
 			int blue = 0;
+			//GAUTAM, we were getting color exceptions because of two conditions:
+				//(1) values were below 0 and negative numbers were being converted to hex
+				//(2) values were being converted to hex and contained only one sigfig -> added a 0x where x is the data
+			
+			//account for negative values
+			Log.v("colorsList", "current/threshold: " + (float) threshold/current);
+			if((float)threshold/current > 0.3) {
+				blue = (int) (255 - (3.0f)*(current * increment));
+			
 
-			int green = 255 - (current * increment);
+				Log.v("colorsList", blue + "" );
+			
+
+				green = (int) (255 -  (1.25f)*(current * increment));
+			
+			} else {
+				blue = (int) (255 - 2*(current * increment));
+				green = (int) (255 - 2*(current * increment));
+			}
+			if(green < 0) {
+				green = 0;
+			}
+			if(blue < 0) {
+				blue = 0;
+			}
+			
+			Log.v("colorsList", "blue: " + blue);
+			Log.v("colorsList", "green: " + green);
 
 			String RED = Integer.toHexString(red);
 			String GREEN = Integer.toHexString(green);
 			String BLUE = Integer.toHexString(blue);
+			
+			//account for significant figures
+			if(GREEN.length() == 1) {
+				StringBuilder temp = new StringBuilder();
+				temp.append("0");
+				temp.append(GREEN);
+				GREEN = temp.toString();
+			}
+			if(BLUE.length() == 1) {
+				StringBuilder temp = new StringBuilder();
+				temp.append("0");
+				temp.append(BLUE);
+				BLUE = temp.toString();
+			}
 
 			StringBuilder builder = new StringBuilder();
 			builder.append("#");
 			builder.append(RED);
 			builder.append(GREEN);
 			builder.append(BLUE);
-			builder.append("0");
+			
 			int color;
 			try {
+				Log.v("colorsList", builder.toString() );
 				color = Color.parseColor(builder.toString());
 			} catch (IllegalArgumentException e) {
 				color = (0xFF33B5E5);
@@ -1176,18 +1219,24 @@ public class MainActivity extends SlidingActivity implements LocationListener, O
 			return color;
 
 		} else if (current < threshold) {
-			int increment = (255 / (threshold + 10));
+			int increment = (255 / (threshold));
 			Log.v("temp", "Increment: " + increment);
 			StringBuilder builder = new StringBuilder();
 
 			// r,g are always 0 and blue is just changing
 			// start at 0 and will gain to 255
+			
 
-			int blue = 255 - (current * increment);
-			Log.v("temp", "Blue is: " + blue);
+			int red =  (current * increment);
+			int green = (current * increment);
+			//Log.v("temp", "Blue is: " + blue);
 
-			builder.append("#0000");
-			builder.append(Integer.toHexString(blue));
+			
+			
+			builder.append("#");
+			builder.append(Integer.toHexString(red));
+			builder.append(Integer.toHexString(green));
+			builder.append("FF");
 			Log.v("temp", "builder string: " + builder.toString());
 			int color;	
 			try{
